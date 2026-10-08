@@ -1,0 +1,447 @@
+"use client";
+
+import Link from "next/link";
+import { useState } from "react";
+import { DISPOSITION_LABEL, type EvidenceDisposition } from "@/domain/evidenceView";
+import { ROLE_LABEL, SOURCE_TYPE_LABEL, STATUS_LABEL, formatClaimValue, formatDate, formatDateTime } from "@/domain/format";
+import { ADMISSIBLE_EVIDENCE_TEXT } from "@/domain/policies";
+import type { UserRole } from "@/domain/types";
+import { routes } from "@/lib/routes";
+import { useRepoQuery } from "@/lib/useRepository";
+import type { ClaimEntry, DealLedger, EvidenceView } from "@/services/evidenceRepository";
+import { DecisionNote, Quote } from "./evidenceParts";
+import { HumanActionModal, type ActionMode } from "./HumanActionModal";
+import { Button, Card, Eyebrow, Modal, Skeleton, StatusBadge, cx, statusText } from "./ui";
+
+const DEMO_REASON = "Procurement delay can be absorbed; waiting for updated customer timeline.";
+
+export function ClaimDetailScreen({ dealId, definitionId, role }: { dealId: string; definitionId: string; role: Exclude<UserRole, "REVOPS"> }) {
+  const { data: ledger, loading } = useRepoQuery((r) => r.getDealLedger(dealId), `deal-${dealId}`);
+  const [action, setAction] = useState<ActionMode | null>(null);
+  const [viewing, setViewing] = useState<EvidenceView | null>(null);
+
+  if (loading) return <Skeleton label="Loading the evidence" />;
+  const entry = ledger?.claims.find((c) => c.definition.id === definitionId);
+  if (!ledger || !entry) return <p className="text-slate">This claim is not in the prototype data.</p>;
+
+  const isRep = role === "REP";
+  const { claim, definition } = entry;
+  const status = claim.computedStatus;
+  const x = claim.explanation;
+
+  return (
+    <div className="space-y-6">
+      <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-2 text-sm">
+        <Link href={routes.queue(role)} className="font-semibold text-accent hover:underline">
+          {isRep ? "Your flags" : "Evidence queue"}
+        </Link>
+        <span className="text-muted">/</span>
+        <Link href={routes.deal(role, ledger.deal.id)} className="font-semibold text-accent hover:underline">
+          {ledger.deal.accountName}
+        </Link>
+        <span className="text-muted">/</span>
+        <span className="text-slate">{definition.shortLabel}</span>
+      </nav>
+
+      <ClaimSwitcher ledger={ledger} activeId={definition.id} role={role} />
+
+      <header className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <Eyebrow>
+            {ledger.deal.accountName} · evidence detail
+          </Eyebrow>
+          <h1 className="mt-1 text-3xl font-bold tracking-tight text-ink">{entry.statement}</h1>
+          <p className="mt-1 text-[15px] text-slate">
+            The CRM says <strong className="text-ink">{formatClaimValue(definition, claim.crmValue)}</strong>. This is what the connected sources say.
+          </p>
+        </div>
+        <StatusBadge status={status} size="lg" locked />
+      </header>
+
+      <ProductionStrip entry={entry} />
+
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
+        <div className="space-y-6">
+          <section aria-label="Evidence">
+            <h2 className="mb-3 text-lg font-bold text-ink">{entry.evidence.length > 0 ? "Evidence, in order" : "Evidence"}</h2>
+            {entry.evidence.length === 0 ? (
+              <EmptyEvidence ledger={ledger} entry={entry} />
+            ) : (
+              <ol className="space-y-0">
+                {entry.evidence.map((e, i) => (
+                  <li key={e.id}>
+                    {i > 0 && <Connector prev={entry.evidence[i - 1]} next={e} />}
+                    <EvidenceCard e={e} total={entry.evidence.length} entry={entry} onOpen={() => setViewing(e)} />
+                  </li>
+                ))}
+              </ol>
+            )}
+          </section>
+
+          <PeopleDecide ledger={ledger} entry={entry} role={role} onAction={setAction} />
+        </div>
+
+        <aside className="space-y-4">
+          <Card className="p-5" as="section">
+            <Eyebrow>Business status · computed by policy</Eyebrow>
+            <div className="mt-2 flex items-center gap-3">
+              <StatusBadge status={status} size="lg" locked />
+            </div>
+            <p className="mt-3 text-[15px] leading-relaxed text-ink" data-testid="status-reason">
+              {x.reason}
+            </p>
+            <dl className="mt-4 space-y-2.5 border-t border-line-soft pt-4 text-[13px]">
+              <Rule label="Accepted authority" value={entry.rule.acceptedAuthorities.map((r) => ROLE_LABEL[r]).join(" › ")} />
+              <Rule label="Admissible evidence" value={ADMISSIBLE_EVIDENCE_TEXT[definition.id]} />
+              <Rule
+                label="Freshness window"
+                value={`${entry.rule.freshnessDays} days${x.evidenceAgeDays !== null ? ` · newest supporting evidence is ${x.evidenceAgeDays} days old` : ""}`}
+              />
+              <Rule label="Precedence" value="Later or more authoritative evidence wins" />
+              <Rule label="Policy version" value={`${x.ruleVersion} (illustrative)`} />
+              <Rule label="Computed" value={formatDateTime(claim.lastComputedAt)} />
+            </dl>
+            <p className="mt-4 rounded-lg bg-canvas px-3 py-2 text-xs leading-snug text-slate">
+              Deterministic. No model score and no human decision is an input to this status.
+            </p>
+          </Card>
+
+          <ConfidenceCard entry={entry} />
+
+          {(status === "UNSUPPORTED" || status === "CONTRADICTED" || status === "STALE") && (
+            <Card className="p-5" as="section">
+              <Eyebrow>Next question to ask</Eyebrow>
+              <p className="mt-2 text-[15px] font-semibold leading-snug text-ink">{definition.nextQuestion}</p>
+              <p className="mt-2 text-xs text-muted">Suggested by policy. The ledger will not contact the customer for you.</p>
+            </Card>
+          )}
+        </aside>
+      </div>
+
+      {action && (
+        <HumanActionModal
+          mode={action}
+          ledger={ledger}
+          entry={entry}
+          suggestedReason={action === "MANAGER_DECISION" && definition.id === "PROCUREMENT_DURATION" ? DEMO_REASON : undefined}
+          onClose={() => setAction(null)}
+        />
+      )}
+      {viewing && <SourceViewer evidence={viewing} ledger={ledger} onClose={() => setViewing(null)} />}
+    </div>
+  );
+}
+
+// ── How this was produced: AI → Policy → People ──────────────────────────────
+
+function ProductionStrip({ entry }: { entry: ClaimEntry }) {
+  const n = entry.evidence.length;
+  const customer = entry.evidence.filter((e) => e.authority !== "SELLER_SUPPLIED").length;
+  const people = entry.decisions.length;
+  const steps = [
+    {
+      k: "AI interprets",
+      t: n === 0 ? "Found no passage for this claim" : `Found ${n} passage${n === 1 ? "" : "s"}, extracted the exact quote${n === 1 ? "" : "s"}, proposed speaker and role`,
+      note: "Probabilistic",
+    },
+    {
+      k: "Policy computes",
+      t: `Applied the claim's rule to ${n === 0 ? "no evidence" : `${customer} customer-side passage${customer === 1 ? "" : "s"}${n - customer > 0 ? ` and ${n - customer} seller-supplied item${n - customer === 1 ? "" : "s"}` : ""}`} → ${STATUS_LABEL[entry.claim.computedStatus].toUpperCase()}`,
+      note: "Deterministic",
+    },
+    {
+      k: "People decide",
+      t: people === 0 ? "No decision logged on this claim yet" : `${people} decision${people === 1 ? "" : "s"} logged beside the status`,
+      note: "Judgement, with a reason",
+    },
+  ];
+  return (
+    <ol aria-label="How this status was produced" className="grid gap-px overflow-hidden rounded-xl border border-line bg-line md:grid-cols-3">
+      {steps.map((s, i) => (
+        <li key={s.k} className="bg-surface px-5 py-3.5">
+          <p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wide text-muted">
+            <span className="grid h-5 w-5 place-items-center rounded-full bg-ink text-[11px] text-white">{i + 1}</span>
+            {s.k} · {s.note}
+          </p>
+          <p className="mt-1.5 text-[13px] leading-snug text-slate">{s.t}</p>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+function ClaimSwitcher({ ledger, activeId, role }: { ledger: DealLedger; activeId: string; role: UserRole }) {
+  return (
+    <nav aria-label="Claims on this deal" className="flex flex-wrap gap-2">
+      {ledger.claims.map((c) => (
+        <Link
+          key={c.claim.id}
+          href={routes.claim(role, ledger.deal.id, c.definition.id)}
+          aria-current={c.definition.id === activeId ? "page" : undefined}
+          className={cx(
+            "inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm font-semibold",
+            c.definition.id === activeId ? "border-ink bg-ink text-white" : "border-line bg-surface text-slate hover:bg-canvas",
+          )}
+        >
+          {c.definition.shortLabel}
+          <StatusDot status={c.claim.computedStatus} onDark={c.definition.id === activeId} />
+        </Link>
+      ))}
+    </nav>
+  );
+}
+
+function StatusDot({ status, onDark }: { status: ClaimEntry["claim"]["computedStatus"]; onDark: boolean }) {
+  const color = { SUPPORTED: "bg-sup", UNSUPPORTED: "bg-uns-edge", CONTRADICTED: "bg-con", STALE: "bg-neu", UNKNOWN: "bg-neu" }[status];
+  return <span role="img" aria-label={STATUS_LABEL[status]} className={cx("inline-block h-2.5 w-2.5 rounded-full ring-2", color, onDark ? "ring-white/60" : "ring-white")} />;
+}
+
+// ── Evidence ─────────────────────────────────────────────────────────────────
+
+const DISPOSITION_STYLE: Record<EvidenceDisposition, string> = {
+  SUPPORTS: "bg-sup-soft text-sup border-sup/30",
+  DISAGREES: "bg-con-soft text-con border-con/30",
+  SUPERSEDED: "bg-neu-soft text-neu border-neu/30",
+  CONTEXT_ONLY: "bg-neu-soft text-neu border-neu/30",
+  SELLER_SUPPLIED: "bg-uns-soft text-uns border-uns-edge/40",
+};
+
+function authorityText(e: EvidenceView, entry: ClaimEntry): string {
+  if (e.authority === "ACCEPTED") return `Accepted authority · rank ${entry.rule.acceptedAuthorities.indexOf(e.speakerRole) + 1} of ${entry.rule.acceptedAuthorities.length}`;
+  if (e.authority === "SELLER_SUPPLIED") return "Seller-supplied · never admissible";
+  return `Customer context · ${ROLE_LABEL[e.speakerRole]} is not an accepted authority here`;
+}
+
+function EvidenceCard({ e, total, entry, onOpen }: { e: EvidenceView; total: number; entry: ClaimEntry; onOpen: () => void }) {
+  const seller = e.authority === "SELLER_SUPPLIED";
+  return (
+    <article className="rounded-xl border border-line bg-surface" data-testid={`evidence-${e.id}`}>
+      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-line-soft px-5 py-3">
+        <div className="flex items-center gap-3">
+          <span className="grid h-7 w-7 place-items-center rounded-full bg-ink text-sm font-bold text-white" aria-label={`Sequence ${e.sequence} of ${total}`}>
+            {e.sequence}
+          </span>
+          <div>
+            <p className="text-sm font-bold text-ink">{SOURCE_TYPE_LABEL[e.sourceType]}</p>
+            <p className="text-xs text-muted">{formatDateTime(e.timestamp)}</p>
+          </div>
+        </div>
+        <span className={cx("rounded-full border px-2.5 py-1 text-xs font-bold", DISPOSITION_STYLE[e.disposition])}>{DISPOSITION_LABEL[e.disposition]}</span>
+      </header>
+
+      <div className="px-5 py-4">
+        <Quote className="text-lg leading-relaxed">{e.quote}</Quote>
+        <dl className="mt-4 grid gap-x-6 gap-y-3 text-[13px] sm:grid-cols-2">
+          <Meta label="Speaker" value={e.speaker} />
+          <Meta
+            label="Role"
+            value={
+              <>
+                {ROLE_LABEL[e.speakerRole]}
+                <span className="ml-1.5 text-xs text-muted">{e.speakerRoleBasis === "AI_PROPOSED" ? "proposed by AI" : e.speakerRoleBasis === "SELLER_ATTACHED" ? "rep" : "corrected by a person"}</span>
+              </>
+            }
+          />
+          <Meta label="Authority (policy)" value={authorityText(e, entry)} />
+          <Meta label="Sequence" value={`${e.sequence} of ${total}, by time`} />
+        </dl>
+      </div>
+
+      <footer className="flex flex-wrap items-center justify-between gap-3 rounded-b-xl border-t border-line-soft bg-accent-soft/60 px-5 py-3">
+        {seller ? (
+          <p className="text-xs text-slate">Not extracted by the model: added by a person, so no extraction confidence applies.</p>
+        ) : (
+          <p className="text-xs text-slate" data-testid={`confidence-${e.id}`}>
+            <span className="font-bold text-accent">AI extraction confidence {Math.round(e.extractionConfidence * 100)}%</span> · how sure the model is it read this passage correctly
+          </p>
+        )}
+        <Button variant="secondary" className="!px-3 !py-1.5 !text-[13px]" onClick={onOpen} aria-label={`Open source for passage ${e.sequence}`}>
+          Open source <span aria-hidden>↗</span>
+        </Button>
+      </footer>
+    </article>
+  );
+}
+
+function Meta({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div>
+      <dt className="text-[11px] font-bold uppercase tracking-wide text-muted">{label}</dt>
+      <dd className="mt-0.5 text-slate">{value}</dd>
+    </div>
+  );
+}
+
+function Connector({ prev, next }: { prev: EvidenceView; next: EvidenceView }) {
+  const days = Math.max(0, Math.round((Date.parse(next.timestamp) - Date.parse(prev.timestamp)) / 86_400_000));
+  const higher = next.authority === "ACCEPTED" && prev.authority !== "ACCEPTED";
+  return (
+    <div className="flex items-center gap-3 py-2.5 pl-[22px]" aria-hidden>
+      <span className="h-7 w-px bg-line" />
+      <span className="text-xs font-semibold text-muted">
+        ↓ {days} day{days === 1 ? "" : "s"} later
+        {higher && <span className="text-ink"> · from a more authoritative source</span>}
+      </span>
+    </div>
+  );
+}
+
+function EmptyEvidence({ ledger, entry }: { ledger: DealLedger; entry: ClaimEntry }) {
+  return (
+    <div className="rounded-xl border border-dashed border-line bg-surface px-5 py-8 text-center" data-testid="empty-evidence">
+      <p className="text-base font-bold text-ink">No customer statement found in connected sources</p>
+      <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-slate">
+        The CRM holds {entry.statement.toLowerCase()}, but nothing in {ledger.deal.connectedChannels.length} connected channels supports it. That does not make it wrong. It means it is an assumption.
+      </p>
+      <p className="mt-3 text-xs text-muted">Channels read: CRM · Email · Calendar · Call recorder. Phone, chat and in-person are not read.</p>
+    </div>
+  );
+}
+
+function Rule({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="grid grid-cols-[110px_1fr] gap-3">
+      <dt className="font-semibold text-muted">{label}</dt>
+      <dd className="text-slate">{value}</dd>
+    </div>
+  );
+}
+
+function ConfidenceCard({ entry }: { entry: ClaimEntry }) {
+  const extracted = entry.evidence.filter((e) => e.authority !== "SELLER_SUPPLIED");
+  const x = entry.claim.explanation;
+  const sup = entry.evidence.find((e) => x.supersededEvidenceIds.includes(e.id));
+  return (
+    <Card className="p-5" as="section">
+      <Eyebrow>Extraction confidence · AI, separate from status</Eyebrow>
+      {extracted.length === 0 ? (
+        <p className="mt-2 text-sm text-slate">No passage was extracted for this claim, so there is no confidence to show.</p>
+      ) : (
+        <ul className="mt-3 space-y-3">
+          {extracted.map((e) => (
+            <li key={e.id}>
+              <div className="flex items-baseline justify-between text-sm">
+                <span className="font-semibold text-ink">
+                  Passage {e.sequence} · {ROLE_LABEL[e.speakerRole]}
+                </span>
+                <span className="font-bold tabular-nums text-accent">{Math.round(e.extractionConfidence * 100)}%</span>
+              </div>
+              <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-line-soft" role="img" aria-label={`Extraction confidence ${Math.round(e.extractionConfidence * 100)} percent`}>
+                <div className="h-full rounded-full bg-accent" style={{ width: `${e.extractionConfidence * 100}%` }} />
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+      <p className="mt-4 text-[13px] leading-relaxed text-slate">
+        {sup ? (
+          <>
+            The model was <strong>{Math.round(sup.extractionConfidence * 100)}%</strong> sure that {sup.speaker} said it. The claim is still{" "}
+            <strong className={statusText[entry.claim.computedStatus]}>{STATUS_LABEL[entry.claim.computedStatus].toUpperCase()}</strong>, because {entry.claim.explanation.reasonCode.startsWith("CONTRADICTED") ? "later, more authoritative evidence disagrees" : "policy decides, not the model"}.
+          </>
+        ) : (
+          <>Confidence measures whether the model read the passage correctly. It never decides whether the claim holds.</>
+        )}{" "}
+        <strong>Extraction confidence ≠ business status.</strong>
+      </p>
+    </Card>
+  );
+}
+
+// ── People decide ────────────────────────────────────────────────────────────
+
+function PeopleDecide({ ledger, entry, role, onAction }: { ledger: DealLedger; entry: ClaimEntry; role: UserRole; onAction: (m: ActionMode) => void }) {
+  const isRep = role === "REP";
+  const status = entry.claim.computedStatus;
+  const decisions = entry.decisions;
+  return (
+    <section aria-label="People decide" className="rounded-xl border border-line bg-surface p-5">
+      <Eyebrow>People decide</Eyebrow>
+      <h2 className="mt-1 text-lg font-bold text-ink">{isRep ? "Your move, before the review" : "Your decision"}</h2>
+
+      <div className="mt-4 grid gap-3 md:grid-cols-[1fr_auto_1.3fr] md:items-stretch" data-testid="status-vs-decision">
+        <div className="rounded-lg border border-line px-4 py-3">
+          <p className="text-[11px] font-bold uppercase tracking-wide text-muted">Computed evidence status</p>
+          <div className="mt-2">
+            <StatusBadge status={status} locked />
+          </div>
+          <p className="mt-2 text-xs text-muted">Set by policy. A decision cannot edit it.</p>
+        </div>
+        <div className="hidden items-center text-xl font-bold text-muted md:flex" aria-hidden>
+          ≠
+        </div>
+        <div className="space-y-2">
+          {decisions.length === 0 ? (
+            <div className="flex h-full min-h-[84px] items-center rounded-lg border border-dashed border-line px-4 py-3 text-sm text-muted">
+              {isRep ? "No response logged yet." : "No decision logged on this claim yet."}
+            </div>
+          ) : (
+            decisions.map((d) => <DecisionNote key={d.id} decision={d} users={ledger.users} />)
+          )}
+        </div>
+      </div>
+      {decisions.length > 0 && (
+        <p className="mt-3 text-[13px] font-semibold text-ink" data-testid="status-unchanged">
+          Status is still {STATUS_LABEL[status].toUpperCase()}. The decision sits beside it.
+        </p>
+      )}
+
+      <div className="mt-5 flex flex-wrap gap-2">
+        {isRep ? (
+          <>
+            <Button variant="primary" onClick={() => onAction("REP_VERIFY")}>
+              I’ll verify with the customer
+            </Button>
+            <Button onClick={() => onAction("REP_DISPUTE")}>Dispute the reading</Button>
+            <Button onClick={() => onAction("REP_ATTACH")}>Attach evidence</Button>
+            <Button onClick={() => onAction("REP_CRM_FIX")}>I’ll correct the CRM myself</Button>
+          </>
+        ) : (
+          <Button variant="primary" onClick={() => onAction("MANAGER_DECISION")}>
+            Log decision
+          </Button>
+        )}
+      </div>
+      <p className="mt-3 text-xs text-muted">
+        {isRep
+          ? "Logged locally. Nothing is written to the CRM or sent to the customer."
+          : "Logged beside the claim. The ledger is read-only: it will not change the forecast in your CRM."}
+      </p>
+    </section>
+  );
+}
+
+// ── Source viewer ────────────────────────────────────────────────────────────
+
+function SourceViewer({ evidence, ledger, onClose }: { evidence: EvidenceView; ledger: DealLedger; onClose: () => void }) {
+  const source = ledger.sources[evidence.sourceId];
+  if (!source) return null;
+  const i = source.text.indexOf(evidence.quote);
+  const before = i >= 0 ? source.text.slice(0, i) : source.text;
+  const after = i >= 0 ? source.text.slice(i + evidence.quote.length) : "";
+  return (
+    <Modal title="Source" onClose={onClose} wide>
+      <div className="space-y-4">
+        <div>
+          <p className="text-base font-bold text-ink">{source.title}</p>
+          <p className="mt-0.5 text-sm text-slate">
+            {SOURCE_TYPE_LABEL[source.type]} · {formatDateTime(source.occurredAt)} · {source.participants.map((p) => `${p.name} (${ROLE_LABEL[p.role]})`).join(", ")}
+          </p>
+        </div>
+        <pre className="max-h-[50vh] overflow-auto whitespace-pre-wrap rounded-lg border border-line bg-canvas p-4 font-sans text-sm leading-relaxed text-slate" data-testid="source-text">
+          {before}
+          {i >= 0 && <mark className="quote-hit font-semibold text-ink">{evidence.quote}</mark>}
+          {after}
+        </pre>
+        <p className="text-xs leading-relaxed text-muted">
+          The highlighted passage is the exact quote the ledger cites. The surrounding text is shown so a conditional or hedged remark is not read out of context.
+        </p>
+        <div className="rounded-lg border border-line-soft bg-accent-soft px-4 py-3 text-xs">
+          <p className="font-bold uppercase tracking-wide text-muted">Deep link to the source (simulated in this prototype)</p>
+          <p className="mt-1 break-all font-mono text-[12px] text-slate">{source.deepLink}</p>
+        </div>
+        <p className="text-xs text-muted">Quoted on {formatDate(evidence.timestamp)} by {evidence.speaker}.</p>
+      </div>
+    </Modal>
+  );
+}

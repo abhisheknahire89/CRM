@@ -1,0 +1,155 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1060 1088" width="100%" role="img" aria-labelledby="t d" font-family="Arial, Helvetica, sans-serif">
+<title id="t">Production architecture of the Deal Evidence Ledger</title>
+<desc id="d">Nine layers from read-only data sources through connectors, normalisation, AI evidence extraction, evidence store, deterministic policy engine, application API, ledger UI, to human decisions and the audit log. AI interprets, policy computes, people decide.</desc>
+<defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#64748b"/></marker></defs>
+<rect width="1060" height="1088" fill="#ffffff"/>
+<text x="28" y="34" font-size="13" font-weight="700" fill="#14213d">PRODUCTION ARCHITECTURE · V1 · READ-ONLY WITH RESPECT TO THE EXTERNAL CRM</text>
+<rect x="16" y="64" width="1028" height="84" rx="10" fill="#ffffff" stroke="#d5dae2" stroke-width="1.2"/>
+<circle cx="36" cy="90" r="11" fill="#14213d"/><text x="36" y="94.5" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">1</text>
+<text x="54" y="94" font-size="12.5" font-weight="700" fill="#14213d">DATA SOURCES</text>
+<text x="54" y="112" font-size="11" fill="#64748b">read-only access</text>
+<rect x="272" y="76" width="201" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="283" y="91.5" font-size="12" fill="#334155">Salesforce / HubSpot (one)</text>
+<rect x="480.75" y="76" width="125" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="491.75" y="91.5" font-size="12" fill="#334155">Gmail / Outlook</text>
+<rect x="613.875" y="76" width="77" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="624.875" y="91.5" font-size="12" fill="#334155">Calendar</text>
+<rect x="698.875" y="76" width="153" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="709.875" y="91.5" font-size="12" fill="#334155">Call recorder (one)</text>
+<line x1="392" y1="151" x2="392" y2="172" stroke="#64748b" stroke-width="1.6" marker-end="url(#ah)"/>
+<text x="406" y="166.0" font-size="11" fill="#64748b">OAuth · read-only</text>
+<rect x="16" y="176" width="1028" height="84" rx="10" fill="#ffffff" stroke="#d5dae2" stroke-width="1.2"/>
+<circle cx="36" cy="202" r="11" fill="#14213d"/><text x="36" y="206.5" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">2</text>
+<text x="54" y="206" font-size="12.5" font-weight="700" fill="#14213d">CONNECTORS</text>
+<text x="54" y="224" font-size="11" fill="#64748b">ingestion; least-privilege OAuth</text>
+<rect x="272" y="188" width="187" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="283" y="203.5" font-size="12" fill="#334155">OAuth + read-only scopes</text>
+<rect x="467.0" y="188" width="201" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="478.0" y="203.5" font-size="12" fill="#334155">Incremental sync (cursors)</text>
+<rect x="675.75" y="188" width="187" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="686.75" y="203.5" font-size="12" fill="#334155">Webhooks where supported</text>
+<rect x="870.75" y="188" width="153" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="881.75" y="203.5" font-size="12" fill="#334155">Job queue + retries</text>
+<line x1="392" y1="263" x2="392" y2="284" stroke="#64748b" stroke-width="1.6" marker-end="url(#ah)"/>
+<text x="406" y="278.0" font-size="11" fill="#64748b">raw payloads</text>
+<rect x="16" y="288" width="1028" height="84" rx="10" fill="#ffffff" stroke="#d5dae2" stroke-width="1.2"/>
+<circle cx="36" cy="314" r="11" fill="#14213d"/><text x="36" y="318.5" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">3</text>
+<text x="54" y="318" font-size="12.5" font-weight="700" fill="#14213d">NORMALISATION</text>
+<text x="54" y="336" font-size="11" fill="#64748b">one shape for every source</text>
+<rect x="272" y="300" width="77" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="283" y="315.5" font-size="12" fill="#334155">Messages</text>
+<rect x="357.0" y="300" width="56" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="368.0" y="315.5" font-size="12" fill="#334155">Calls</text>
+<rect x="421.375" y="300" width="63" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="432.375" y="315.5" font-size="12" fill="#334155">Events</text>
+<rect x="492.625" y="300" width="63" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="503.625" y="315.5" font-size="12" fill="#334155">People</text>
+<rect x="563.875" y="300" width="77" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="574.875" y="315.5" font-size="12" fill="#334155">Accounts</text>
+<rect x="648.875" y="300" width="56" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="659.875" y="315.5" font-size="12" fill="#334155">Deals</text>
+<rect x="713.25" y="300" width="221" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="724.25" y="315.5" font-size="12" fill="#334155">Source metadata + permissions</text>
+<line x1="392" y1="375" x2="392" y2="396" stroke="#64748b" stroke-width="1.6" marker-end="url(#ah)"/>
+<text x="406" y="390.0" font-size="11" fill="#64748b">candidate passages · Commit / Best Case deals only</text>
+<rect x="16" y="400" width="1028" height="84" rx="10" fill="#eef3fd" stroke="#1d4ed8" stroke-width="2"/>
+<circle cx="36" cy="426" r="11" fill="#14213d"/><text x="36" y="430.5" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">4</text>
+<text x="54" y="430" font-size="12.5" font-weight="700" fill="#14213d">EVIDENCE EXTRACTION</text>
+<text x="54" y="448" font-size="11" fill="#64748b">structured output, not prose</text>
+<rect x="54" y="456" width="110" height="19" rx="9.5" fill="#1d4ed8"/>
+<text x="109" y="469" text-anchor="middle" font-size="10.5" font-weight="700" fill="#fff">AI INTERPRETS</text>
+<rect x="272" y="412" width="125" height="23" rx="6" fill="#fff" stroke="#1d4ed8" stroke-opacity="0.55" stroke-width="1"/>
+<text x="283" y="427.5" font-size="12" fill="#334155">Claim candidate</text>
+<rect x="405.125" y="412" width="146" height="23" rx="6" fill="#fff" stroke="#1d4ed8" stroke-opacity="0.55" stroke-width="1"/>
+<text x="416.125" y="427.5" font-size="12" fill="#334155">Exact quote / span</text>
+<rect x="558.875" y="412" width="70" height="23" rx="6" fill="#fff" stroke="#1d4ed8" stroke-opacity="0.55" stroke-width="1"/>
+<text x="569.875" y="427.5" font-size="12" fill="#334155">Speaker</text>
+<rect x="637.0" y="412" width="173" height="23" rx="6" fill="#fff" stroke="#1d4ed8" stroke-opacity="0.55" stroke-width="1"/>
+<text x="648.0" y="427.5" font-size="12" fill="#334155">Speaker-role candidate</text>
+<rect x="818.25" y="412" width="84" height="23" rx="6" fill="#fff" stroke="#1d4ed8" stroke-opacity="0.55" stroke-width="1"/>
+<text x="829.25" y="427.5" font-size="12" fill="#334155">Timestamp</text>
+<rect x="910.125" y="412" width="98" height="23" rx="6" fill="#fff" stroke="#1d4ed8" stroke-opacity="0.55" stroke-width="1"/>
+<text x="921.125" y="427.5" font-size="12" fill="#334155">Source link</text>
+<rect x="272" y="440" width="166" height="23" rx="6" fill="#fff" stroke="#1d4ed8" stroke-opacity="0.55" stroke-width="1"/>
+<text x="283" y="455.5" font-size="12" fill="#334155">Extraction confidence</text>
+<rect x="446.375" y="440" width="180" height="23" rx="6" fill="#fff" stroke="#1d4ed8" stroke-opacity="0.55" stroke-width="1"/>
+<text x="457.375" y="455.5" font-size="12" fill="#334155">Candidate contradiction</text>
+<line x1="392" y1="487" x2="392" y2="508" stroke="#64748b" stroke-width="1.6" marker-end="url(#ah)"/>
+<text x="406" y="502.0" font-size="11" fill="#64748b">evidence + extraction confidence · quote verified verbatim</text>
+<rect x="16" y="512" width="1028" height="84" rx="10" fill="#ffffff" stroke="#d5dae2" stroke-width="1.2"/>
+<circle cx="36" cy="538" r="11" fill="#14213d"/><text x="36" y="542.5" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">5</text>
+<text x="54" y="542" font-size="12.5" font-weight="700" fill="#14213d">EVIDENCE STORE</text>
+<text x="54" y="560" font-size="11" fill="#64748b">Postgres + object store</text>
+<rect x="272" y="524" width="160" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="283" y="539.5" font-size="12" fill="#334155">Raw source reference</text>
+<rect x="439.5" y="524" width="153" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="450.5" y="539.5" font-size="12" fill="#334155">Normalised evidence</text>
+<rect x="600.125" y="524" width="153" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="611.125" y="539.5" font-size="12" fill="#334155">Append-only history</text>
+<rect x="760.75" y="524" width="208" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="771.75" y="539.5" font-size="12" fill="#334155">Verbatim-quote check passed</text>
+<line x1="392" y1="599" x2="392" y2="620" stroke="#64748b" stroke-width="1.6" marker-end="url(#ah)"/>
+<text x="406" y="614.0" font-size="11" fill="#64748b">evidence + history</text>
+<rect x="16" y="624" width="1028" height="84" rx="10" fill="#ffffff" stroke="#14213d" stroke-width="2"/>
+<circle cx="36" cy="650" r="11" fill="#14213d"/><text x="36" y="654.5" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">6</text>
+<text x="54" y="654" font-size="12.5" font-weight="700" fill="#14213d">POLICY ENGINE</text>
+<text x="54" y="672" font-size="11" fill="#64748b">deterministic; same code as the prototype</text>
+<rect x="54" y="680" width="124" height="19" rx="9.5" fill="#14213d"/>
+<text x="116" y="693" text-anchor="middle" font-size="10.5" font-weight="700" fill="#fff">POLICY COMPUTES</text>
+<rect x="272" y="636" width="139" height="23" rx="6" fill="#fff" stroke="#14213d" stroke-opacity="0.55" stroke-width="1"/>
+<text x="283" y="651.5" font-size="12" fill="#334155">Claim definitions</text>
+<rect x="418.875" y="636" width="125" height="23" rx="6" fill="#fff" stroke="#14213d" stroke-opacity="0.55" stroke-width="1"/>
+<text x="429.875" y="651.5" font-size="12" fill="#334155">Authority rules</text>
+<rect x="552.0" y="636" width="84" height="23" rx="6" fill="#fff" stroke="#14213d" stroke-opacity="0.55" stroke-width="1"/>
+<text x="563.0" y="651.5" font-size="12" fill="#334155">Freshness</text>
+<rect x="643.875" y="636" width="91" height="23" rx="6" fill="#fff" stroke="#14213d" stroke-opacity="0.55" stroke-width="1"/>
+<text x="654.875" y="651.5" font-size="12" fill="#334155">Precedence</text>
+<rect x="272" y="664" width="462" height="23" rx="6" fill="#fff" stroke="#14213d" stroke-opacity="0.55" stroke-width="1"/>
+<text x="283" y="679.5" font-size="12" fill="#334155">Status: Supported · Unsupported · Contradicted · Stale · Unknown</text>
+<line x1="392" y1="711" x2="392" y2="732" stroke="#64748b" stroke-width="1.6" marker-end="url(#ah)"/>
+<text x="406" y="726.0" font-size="11" fill="#64748b">computed status + reason</text>
+<rect x="16" y="736" width="1028" height="84" rx="10" fill="#ffffff" stroke="#d5dae2" stroke-width="1.2"/>
+<circle cx="36" cy="762" r="11" fill="#14213d"/><text x="36" y="766.5" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">7</text>
+<text x="54" y="766" font-size="12.5" font-weight="700" fill="#14213d">APPLICATION API</text>
+<text x="54" y="784" font-size="11" fill="#64748b">every request checked</text>
+<rect x="272" y="748" width="146" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="283" y="763.5" font-size="12" fill="#334155">SSO + tenant scope</text>
+<rect x="425.75" y="748" width="50" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="436.75" y="763.5" font-size="12" fill="#334155">RBAC</text>
+<rect x="483.25" y="748" width="180" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="494.25" y="763.5" font-size="12" fill="#334155">Source-permission check</text>
+<rect x="671.375" y="748" width="208" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="682.375" y="763.5" font-size="12" fill="#334155">EvidenceRepository contract</text>
+<line x1="392" y1="823" x2="392" y2="844" stroke="#64748b" stroke-width="1.6" marker-end="url(#ah)"/>
+<text x="406" y="838.0" font-size="11" fill="#64748b">ledger views</text>
+<rect x="16" y="848" width="1028" height="84" rx="10" fill="#ffffff" stroke="#d5dae2" stroke-width="1.2"/>
+<circle cx="36" cy="874" r="11" fill="#14213d"/><text x="36" y="878.5" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">8</text>
+<text x="54" y="878" font-size="12.5" font-weight="700" fill="#14213d">LEDGER UI</text>
+<text x="54" y="896" font-size="11" fill="#64748b">Deal Evidence Ledger web app</text>
+<rect x="272" y="860" width="118" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="283" y="875.5" font-size="12" fill="#334155">Evidence queue</text>
+<rect x="398.25" y="860" width="98" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="409.25" y="875.5" font-size="12" fill="#334155">Deal ledger</text>
+<rect x="503.875" y="860" width="235" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="514.875" y="875.5" font-size="12" fill="#334155">Evidence detail + source viewer</text>
+<rect x="747.0" y="860" width="118" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="758.0" y="875.5" font-size="12" fill="#334155">Rep-first view</text>
+<rect x="873.25" y="860" width="111" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="884.25" y="875.5" font-size="12" fill="#334155">RevOps policy</text>
+<line x1="392" y1="935" x2="392" y2="956" stroke="#64748b" stroke-width="1.6" marker-end="url(#ah)"/>
+<text x="406" y="950.0" font-size="11" fill="#64748b">decisions + disputes · never an input to layer 6</text>
+<rect x="16" y="960" width="1028" height="84" rx="10" fill="#f7f8fa" stroke="#334155" stroke-width="1.2" stroke-dasharray="6 4"/>
+<circle cx="36" cy="986" r="11" fill="#14213d"/><text x="36" y="990.5" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">9</text>
+<text x="54" y="990" font-size="12.5" font-weight="700" fill="#14213d">DECISIONS + AUDIT LOG</text>
+<text x="54" y="1008" font-size="11" fill="#64748b">human; stored apart from status</text>
+<rect x="54" y="1016" width="110" height="19" rx="9.5" fill="#334155"/>
+<text x="109" y="1029" text-anchor="middle" font-size="10.5" font-weight="700" fill="#fff">PEOPLE DECIDE</text>
+<rect x="272" y="972" width="194" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="283" y="987.5" font-size="12" fill="#334155">Manager decision + reason</text>
+<rect x="473.875" y="972" width="221" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="484.875" y="987.5" font-size="12" fill="#334155">Rep dispute / verify / attach</text>
+<rect x="703.25" y="972" width="290" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="714.25" y="987.5" font-size="12" fill="#334155">Audit trail of every automated judgment</text>
+<text x="752" y="153" font-size="0" fill="none"></text>
+<text x="28" y="1072" font-size="12" font-weight="700" fill="#14213d">No write-back to the CRM. No customer contact. A human decision never enters layer 6.</text>
+</svg>
