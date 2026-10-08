@@ -41,7 +41,7 @@ Principle used everywhere: **AI interprets. Policy computes. People decide.**
 | **Top risks** | B5, B7: wrong speaker/role, hidden channels, model mistakes, surveillance, platform risk; B3: does evidence separate outcomes | Statuses say "in connected sources"; role "proposed by AI"; one-step dispute; rep-first | Concise §6 **TOP PRODUCT/TECHNICAL RISKS** (six), full §7 risks (eight) | ✓ |
 | **Historical audit** | Value test first (B3, s8 step 1) | n/a (process) | "This tests whether evidence quality separates outcomes enough to justify a live pilot. It does not establish causality." in both documents | ✓ |
 | **Order of tests** | Value (historical audit) → accuracy → adoption (B3, s11) | n/a (process) | §7: Gate 0 value (Week 0) → Gate 2 accuracy (Week 8) → Gate 3 adoption (Weeks 9–10) | ✓ |
-| **Not yet** | CRM replacement · autonomous emails · win/loss prediction · generic agent · WhatsApp / chat · buyer portal · custom rules engine · relationship graph · renewal product (s7) | Appear only in RevOps "Not in V1 · future possibilities" (D-23) | §1 NOT YET table (identical list); §2 "Not built" | ✓ |
+| **Not yet** | CRM replacement · autonomous emails · win/loss prediction · generic agent · WhatsApp / chat · buyer portal · custom rules engine · relationship graph · renewal product (s7) | Not mentioned anywhere in the product UI; documents only (D-23, D-30) | §1 NOT YET table (identical list); §2 "Not built" | ✓ |
 | **Illustrative status** | Castellan, deal and quotes are invented (s1, s3, B2) | "Synthetic data" banner on every screen | Header note and footer of the standalone HTML | ✓ |
 
 ## How consistency is enforced, not just claimed

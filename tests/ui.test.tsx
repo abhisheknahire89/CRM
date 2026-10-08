@@ -55,7 +55,8 @@ describe("Screen 1: evidence queue", () => {
     const rows = await screen.findAllByTestId(/queue-row-/);
     expect(rows).toHaveLength(6);
     expect(rows[0]).toHaveTextContent("Castellan Freight");
-    expect(rows[0]).toHaveTextContent("Start here");
+    expect(rows[0]).not.toHaveTextContent(/start here/i);
+    expect(rows[0]).not.toHaveTextContent(/rep has/i);
     expect(rows[0]).toHaveTextContent("Review evidence");
     expect(screen.queryByText("Vantor Cargo")).not.toBeInTheDocument();
     expect(screen.getByText(/1 Commit \/ Best Case deal with every claim supported is not shown/)).toBeInTheDocument();
@@ -70,13 +71,18 @@ describe("Screen 3: evidence detail (Procurement)", () => {
     const champion = within(screen.getByTestId("evidence-ex-cf-proc-champion"));
     expect(champion.getByText(/Procurement usually takes about two weeks\./)).toBeInTheDocument();
     expect(champion.getByText("Marcus Lindqvist")).toBeInTheDocument();
-    expect(champion.getByText("Champion")).toBeInTheDocument();
+    expect(champion.getByTestId("meta-ex-cf-proc-champion")).toHaveTextContent("Marcus Lindqvist · Champion (proposed by AI) · customer context");
     expect(champion.getByText(/Superseded by later, more authoritative evidence/)).toBeInTheDocument();
 
     const email = within(screen.getByTestId("evidence-ex-cf-proc-email"));
     expect(email.getByText(/Our standard procurement review is four weeks after receipt of the complete document set\./)).toBeInTheDocument();
     expect(email.getByText("Hannah Brandt")).toBeInTheDocument();
-    expect(email.getByText(/Accepted authority/)).toBeInTheDocument();
+    expect(email.getByTestId("meta-ex-cf-proc-email")).toHaveTextContent("Hannah Brandt · Procurement (proposed by AI) · accepted evidence");
+    expect(email.getByText(/Accepted evidence — Procurement, rank 1 of 2/)).toBeInTheDocument();
+    expect(champion.getByText(/Context only — Champion is not an accepted authority for Procurement/)).toBeInTheDocument();
+    for (const label of ["Policy treatment"]) expect(screen.getAllByText(label).length).toBe(2);
+    expect(screen.queryByText(/authority \(policy\)/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/^sequence$/i)).not.toBeInTheDocument();
 
     // Business status + reason
     expect(screen.getByTestId("status-reason")).toHaveTextContent("Later, more authoritative procurement evidence disagrees");
@@ -110,7 +116,7 @@ describe("Final refinements", () => {
     await screen.findAllByTestId(/queue-row-/);
     expect(screen.getAllByText("Evidence review priority").length).toBeGreaterThan(0);
     expect(screen.queryByText("Review priority")).not.toBeInTheDocument();
-    expect(screen.getByTestId("priority-note")).toHaveTextContent("Based on evidence status only — not a win probability.");
+    expect(screen.getByTestId("priority-note")).toHaveTextContent("Evidence review priority reflects evidence status only — not a win probability.");
   });
 
   it("deal header uses the new name and note", async () => {
@@ -139,7 +145,7 @@ describe("Final refinements", () => {
     expect(how).toHaveTextContent("1. AI interpretation");
     expect(how).toHaveTextContent("2. Deterministic policy");
     expect(how).toHaveTextContent("3. Human decision");
-    expect(how).toHaveTextContent("computed CONTRADICTED");
+    expect(how).toHaveTextContent("computed the business status: CONTRADICTED");
   });
 
   it("rule metadata moved behind 'View rule details' and nothing was removed", async () => {
@@ -152,6 +158,62 @@ describe("Final refinements", () => {
     for (const t of ["Accepted authority", "Admissible evidence", "Freshness window", "Precedence", "Policy version", "Computed", "policy-v0.1-illustrative", "Later or more authoritative evidence wins"]) {
       expect(rule).toHaveTextContent(t);
     }
+  });
+});
+
+describe("Presentation polish", () => {
+  it("evidence detail: both passages come before the explainer; business status badge shown once at the top", async () => {
+    renderWithRepo(<ClaimDetailScreen dealId="castellan-freight" definitionId="PROCUREMENT_DURATION" role="MANAGER" />);
+    await screen.findByRole("heading", { name: "Procurement takes two weeks" });
+    const champion = screen.getByTestId("evidence-ex-cf-proc-champion");
+    const email = screen.getByTestId("evidence-ex-cf-proc-email");
+    const how = screen.getByTestId("how-determined");
+    const people = screen.getByLabelText("People decide");
+    const follows = (a: Element, b: Element) => Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(follows(champion, email)).toBe(true);
+    expect(follows(email, how)).toBe(true);
+    expect(follows(how, people)).toBe(true);
+    // the Business status card carries the reason but no second badge
+    const card = screen.getByTestId("status-reason").closest("section")!;
+    expect(card.querySelector("[data-status]")).toBeNull();
+    // the unique top badge
+    expect(document.querySelectorAll("header [data-status=CONTRADICTED]")).toHaveLength(1);
+  });
+
+  it("rule details keep the version once, as policy-v0.1-illustrative", async () => {
+    renderWithRepo(<ClaimDetailScreen dealId="castellan-freight" definitionId="PROCUREMENT_DURATION" role="MANAGER" />);
+    const rule = await screen.findByTestId("rule-details");
+    expect(rule).toHaveTextContent("policy-v0.1-illustrative");
+    expect(rule).not.toHaveTextContent("(illustrative)");
+  });
+
+  it("confidence is explained once; the passages show only the number", async () => {
+    renderWithRepo(<ClaimDetailScreen dealId="castellan-freight" definitionId="PROCUREMENT_DURATION" role="MANAGER" />);
+    await screen.findByRole("heading", { name: "Procurement takes two weeks" });
+    expect(screen.getAllByText(/how sure the model is/i)).toHaveLength(1);
+    expect(screen.getByTestId("confidence-ex-cf-proc-champion")).toHaveTextContent("AI extraction confidence 99%");
+  });
+
+  it("the Castellan deal page: all four claims, no source-summary row, policy headline only, one-line channels", async () => {
+    renderWithRepo(<DealLedgerScreen dealId="castellan-freight" role="MANAGER" />);
+    await screen.findByRole("heading", { name: "Castellan Freight" });
+    expect(screen.getAllByTestId(/^claim-card-/)).toHaveLength(4);
+    expect(screen.queryByText("Source summary")).not.toBeInTheDocument();
+    expect(screen.getByTestId("claim-card-PROCUREMENT_DURATION")).toHaveTextContent("Later, more authoritative procurement evidence disagrees.");
+    expect(screen.getByTestId("claim-card-PROCUREMENT_DURATION")).not.toHaveTextContent("Hannah Brandt (Procurement) states");
+    expect(screen.getByTestId("channels-line")).toHaveTextContent("CRM · Email · Calendar · Call recorder");
+    // rep-response state lives on the deal page, not the queue
+    expect(screen.getByText(/1 of 3 flags answered/)).toBeInTheDocument();
+  });
+
+  it("the rep dispute modal uses the agreed copy and does not imply the status changes", async () => {
+    mockPath = "/rep/deals/castellan-freight/claims/PROCUREMENT_DURATION";
+    const user = userEvent.setup();
+    renderWithRepo(<ClaimDetailScreen dealId="castellan-freight" definitionId="PROCUREMENT_DURATION" role="REP" />);
+    await user.click(await screen.findByRole("button", { name: "Dispute the reading" }));
+    const dialog = screen.getByRole("dialog", { name: "Dispute the reading" });
+    expect(dialog).toHaveTextContent("Your manager sees this beside the status.");
+    expect(dialog).toHaveTextContent("Saved beside the status. The status itself is set by policy.");
   });
 });
 
@@ -172,7 +234,7 @@ describe("Screen 4: human decision", () => {
     expect(within(pair).getByTestId("decision-note")).toHaveTextContent("Procurement delay can be absorbed");
     expect(within(pair).getByTestId("decision-note")).toHaveTextContent("Daniel Reyes");
     expect(within(pair).getByText("Contradicted")).toBeInTheDocument();
-    expect(screen.getByTestId("status-unchanged")).toHaveTextContent("Status is still CONTRADICTED");
+    expect(screen.getByTestId("status-unchanged")).toHaveTextContent("Business status is still CONTRADICTED");
     expect(screen.getByTestId("status-reason")).toHaveTextContent("Later, more authoritative procurement evidence disagrees");
   });
 
@@ -215,7 +277,7 @@ describe("Screen 5: rep-first view", () => {
     expect(note).toHaveTextContent("Disputes the reading");
     expect(note).toHaveTextContent("Maya Okafor");
     // a dispute is a human response: status unchanged
-    expect(screen.getByTestId("status-unchanged")).toHaveTextContent("Status is still CONTRADICTED");
+    expect(screen.getByTestId("status-unchanged")).toHaveTextContent("Business status is still CONTRADICTED");
   });
 
   it("seller-supplied context is labelled as such and Security stays UNSUPPORTED", async () => {
@@ -240,7 +302,7 @@ describe("Screen 5: rep-first view", () => {
       "queue-row-brightwater-logistics",
       "queue-row-ormond-health",
     ]);
-    expect(rows[0]).toHaveTextContent("Rep has responded to 1 of 3 flags");
+    expect(rows[0]).not.toHaveTextContent(/rep has/i);
     expect(screen.getByText(/You see these flags first/)).toBeInTheDocument();
   });
 });
@@ -256,7 +318,9 @@ describe("Screen 6: RevOps policy", () => {
     expect(val("Security complete")).toBe("90");
     expect(val("Procurement duration")).toBe("30");
     expect(val("Close date")).toBe("30");
-    expect(screen.getByText("Not in V1 · future possibilities")).toBeInTheDocument();
+    expect(screen.queryByText(/Not in V1/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/not used on the demo/i)).not.toBeInTheDocument();
+    expect(screen.getByText("More predefined claims")).toBeInTheDocument();
   });
 
   it("changing a freshness window recomputes the status shown for Castellan", async () => {

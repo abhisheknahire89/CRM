@@ -67,8 +67,7 @@ export function RevOpsScreen() {
             ))}
             <tr className="border-y border-line bg-canvas">
               <td colSpan={5} className="px-5 py-2.5">
-                <span className="text-[11px] font-bold uppercase tracking-[0.1em] text-muted">Also in the starter set · not used on the demo deals</span>
-                <span className="ml-3 text-xs text-muted">V1 covers 5–8 predefined claims. These two bring the illustrative starter set to six.</span>
+                <span className="text-[11px] font-bold uppercase tracking-[0.1em] text-muted">More predefined claims</span>
               </td>
             </tr>
             {extra.map((r) => (
@@ -78,24 +77,14 @@ export function RevOpsScreen() {
         </table>
       </Card>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card className="p-5" as="section">
-          <Eyebrow>What RevOps configures</Eyebrow>
-          <ul className="mt-2 space-y-1.5 text-sm text-slate">
-            <li>• Which of the predefined claims to inspect (5–8)</li>
-            <li>• Which roles are accepted authority, in order</li>
-            <li>• How long evidence stays fresh (editable above)</li>
-          </ul>
-        </Card>
-        <Card className="p-5" as="section">
-          <Eyebrow>Not in V1 · future possibilities</Eyebrow>
-          <ul className="mt-2 space-y-1.5 text-sm text-slate">
-            <li>• A custom rules builder or arbitrary logic</li>
-            <li>• Claims RevOps defines from scratch</li>
-            <li>• Any rule that reads a model score or a forecast outcome</li>
-          </ul>
-        </Card>
-      </div>
+      <Card className="p-5" as="section">
+        <Eyebrow>What RevOps configures</Eyebrow>
+        <ul className="mt-2 space-y-1.5 text-sm text-slate">
+          <li>• Which of the predefined claims to inspect (5–8)</li>
+          <li>• Which roles are accepted authority, in order</li>
+          <li>• How long evidence stays fresh (editable above)</li>
+        </ul>
+      </Card>
 
       <StatusKey />
     </div>

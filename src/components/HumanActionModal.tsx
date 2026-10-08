@@ -194,16 +194,20 @@ export function HumanActionModal({ mode, ledger, entry, suggestedReason, onClose
         <div className="rounded-lg border border-line-soft bg-accent-soft px-4 py-3 text-[13px] leading-relaxed text-slate">
           {mode === "REP_ATTACH" ? (
             <>
-              <strong className="text-ink">Visible to your manager.</strong> It does not count as verified customer evidence until confirmed through a connected source. When the customer confirms in email or on a call, the evidence is picked up and the status recomputed.
+              <strong className="text-ink">Visible to your manager.</strong> It does not count as verified customer evidence until confirmed through a connected source. When the customer confirms in email or on a call, the evidence is picked up and the business status recomputed.
+            </>
+          ) : mode === "REP_DISPUTE" ? (
+            <>
+              <strong className="text-ink">Your manager sees this beside the status.</strong> Saved beside the status. The status itself is set by policy. Nothing is sent to the customer or written to the CRM.
             </>
           ) : entry ? (
             <>
-              <strong className="text-ink">Logged beside the claim, not on it.</strong> This stays {STATUS_LABEL[entry.claim.computedStatus].toUpperCase()}. A decision never rewrites a computed status.{" "}
+              <strong className="text-ink">Logged beside the business status, not on it.</strong> The business status stays {STATUS_LABEL[entry.claim.computedStatus].toUpperCase()}. A decision never rewrites it.{" "}
               {mode === "MANAGER_DECISION" ? "The ledger is read-only: it will not change the forecast in your CRM." : "Nothing is sent to the customer or written to the CRM."}
             </>
           ) : (
             <>
-              <strong className="text-ink">Logged beside the evidence, not on it.</strong> Claim statuses do not change. The ledger is read-only: it will not change the forecast in your CRM.
+              <strong className="text-ink">Logged beside the evidence, not on it.</strong> Business statuses do not change. The ledger is read-only: it will not change the forecast in your CRM.
             </>
           )}
         </div>

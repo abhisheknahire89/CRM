@@ -40,6 +40,19 @@ function decisionHeadline(d: HumanDecision): string {
 export function DecisionNote({ decision, users, compact = false, onClaim }: { decision: HumanDecision; users: Record<string, User>; compact?: boolean; onClaim?: string }) {
   const user = users[decision.userId];
   const manager = isManagerType(decision.decisionType);
+  if (compact) {
+    return (
+      <div className="rounded-lg border border-dashed border-slate/40 bg-canvas px-3 py-1.5 text-xs leading-snug" data-testid="decision-note">
+        <span className="font-bold uppercase tracking-wide text-slate">{manager ? "Manager decision" : "Rep response"}</span>
+        <span className="text-muted"> · </span>
+        <span className="font-semibold text-ink">{decisionHeadline(decision)}</span>
+        <span className="text-muted">
+          {" "}
+          · {user?.name ?? decision.userId}, {formatDateTime(decision.createdAt)}
+        </span>
+      </div>
+    );
+  }
   return (
     <div className="rounded-lg border border-dashed border-slate/40 bg-canvas px-3 py-2.5" data-testid="decision-note">
       <p className="text-[11px] font-bold uppercase tracking-wide text-slate">

@@ -33,7 +33,8 @@ export function QueueScreen({ role }: { role: "MANAGER" | "REP" }) {
           <p className="mt-2 text-[15px] leading-relaxed text-slate">
             {isRep
               ? `You see these flags first. They were surfaced ${formatDateTime("2026-10-07T16:00:00Z")}, a day before Daniel Reyes's forecast review, so you can check the evidence, dispute a reading or verify with the customer.`
-              : "Commit and Best Case deals where a deal-critical claim is unsupported or contradicted. Reps saw their flags yesterday. Every other deal stays out of your way."}
+              : "Commit and Best Case deals where a deal-critical claim is unsupported or contradicted. Reps saw their flags yesterday. Every other deal stays out of your way."}{" "}
+            <span data-testid="priority-note">Evidence review priority reflects evidence status only — not a win probability.</span>
           </p>
         </div>
       </div>
@@ -51,7 +52,7 @@ export function QueueScreen({ role }: { role: "MANAGER" | "REP" }) {
             <span className="text-uns">Unsupported</span>
             <span className="text-con">Contradicted</span>
             <span>Evidence review priority</span>
-            <span className="w-36" />
+            <span className="w-[170px]" />
           </div>
           <ol>
             {data.items.map((item, i) => (
@@ -60,7 +61,6 @@ export function QueueScreen({ role }: { role: "MANAGER" | "REP" }) {
           </ol>
           {data.items.length === 0 && <p className="px-5 py-10 text-center text-slate">Nothing is flagged on your deals.</p>}
           <p className="border-t border-line-soft px-5 py-3 text-xs text-muted">
-            <span data-testid="priority-note">Based on evidence status only — not a win probability.</span>{" "}
             {isRep
               ? "Only your own Commit and Best Case deals with an unsupported or contradicted claim are shown."
               : `${data.hiddenCount} Commit / Best Case deal${data.hiddenCount === 1 ? "" : "s"} with every claim supported ${data.hiddenCount === 1 ? "is" : "are"} not shown. Stale claims are shown on each deal but do not queue it on their own.`}
@@ -75,7 +75,6 @@ export function QueueScreen({ role }: { role: "MANAGER" | "REP" }) {
 
 function QueueRow({ item, first, role }: { item: QueueItem; first: boolean; role: UserRole }) {
   const { deal, counts } = item;
-  const flagged = item.claims.filter((c) => c.computedStatus === "CONTRADICTED" || c.computedStatus === "UNSUPPORTED");
   const href = routes.deal(role, deal.id);
   const isRep = role === "REP";
   return (
@@ -92,7 +91,6 @@ function QueueRow({ item, first, role }: { item: QueueItem; first: boolean; role
           <Link href={href} className={cx("font-bold text-ink hover:text-accent", first ? "text-xl" : "text-[15px]")}>
             {deal.accountName}
           </Link>
-          {first && <span className="rounded bg-accent px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">Start here</span>}
         </div>
         <p className="mt-1 text-[13px] leading-snug text-slate">
           {item.claims
@@ -100,12 +98,13 @@ function QueueRow({ item, first, role }: { item: QueueItem; first: boolean; role
             .map((c) => `${getDefinition(c.definitionId).shortLabel} ${STATUS_LABEL[c.computedStatus].toLowerCase()}`)
             .join(" · ")}
         </p>
-        <p className="mt-1 text-xs text-muted">
-          {!isRep && `${item.owner.name} · `}
-          {item.repResponses > 0 ? `Rep has responded to ${item.repResponses} of ${flagged.length} flags` : "Rep has not responded yet"}
-          {item.latestDecision && !isRep ? ` · Decision logged: ${item.latestDecision.value}` : ""}
-          {item.latestDecision && isRep ? ` · Manager decision logged` : ""}
-        </p>
+        {(!isRep || item.latestDecision) && (
+          <p className="mt-1 text-xs text-muted">
+            {!isRep && item.owner.name}
+            {item.latestDecision && !isRep ? ` · Decision logged: ${item.latestDecision.value}` : ""}
+            {item.latestDecision && isRep ? "Manager decision logged" : ""}
+          </p>
+        )}
       </div>
 
       <Cell label="Deal value">
@@ -125,8 +124,8 @@ function QueueRow({ item, first, role }: { item: QueueItem; first: boolean; role
       <Cell label="Evidence review priority">
         <PriorityChip priority={item.priority} />
       </Cell>
-      <div className="order-6 col-span-2 lg:order-none lg:col-span-1 lg:w-36 lg:text-right">
-        <LinkButton href={href} variant={first ? "primary" : "secondary"} className="w-full whitespace-nowrap lg:w-auto">
+      <div className="order-6 col-span-2 lg:order-none lg:col-span-1 lg:w-[170px] lg:text-right">
+        <LinkButton href={href} variant={first ? "primary" : "secondary"} className="w-full whitespace-nowrap">
           {isRep ? "Check evidence" : "Review evidence"} <span aria-hidden>→</span>
         </LinkButton>
       </div>
@@ -159,7 +158,7 @@ const KEY: ComputedStatus[] = ["SUPPORTED", "UNSUPPORTED", "CONTRADICTED", "STAL
 export function StatusKey() {
   return (
     <section aria-label="Status key" className="rounded-xl border border-line-soft bg-surface px-5 py-4">
-      <Eyebrow>Status key · computed by policy, never by the model</Eyebrow>
+      <Eyebrow>Business status key · computed by policy, never by the model</Eyebrow>
       <dl className="mt-3 grid gap-x-6 gap-y-3 sm:grid-cols-2 lg:grid-cols-5">
         {KEY.map((s) => (
           <div key={s} className="space-y-1.5">

@@ -30,41 +30,42 @@ export function ClaimDetailScreen({ dealId, definitionId, role }: { dealId: stri
   const x = claim.explanation;
 
   return (
-    <div className="space-y-6">
-      <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-2 text-sm">
-        <Link href={routes.queue(role)} className="font-semibold text-accent hover:underline">
-          {isRep ? "Your flags" : "Evidence queue"}
-        </Link>
-        <span className="text-muted">/</span>
-        <Link href={routes.deal(role, ledger.deal.id)} className="font-semibold text-accent hover:underline">
-          {ledger.deal.accountName}
-        </Link>
-        <span className="text-muted">/</span>
-        <span className="text-slate">{definition.shortLabel}</span>
-      </nav>
-
-      <ClaimSwitcher ledger={ledger} activeId={definition.id} role={role} />
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
+        <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-2 text-sm">
+          <Link href={routes.queue(role)} className="font-semibold text-accent hover:underline">
+            {isRep ? "Your flags" : "Evidence queue"}
+          </Link>
+          <span className="text-muted">/</span>
+          <Link href={routes.deal(role, ledger.deal.id)} className="font-semibold text-accent hover:underline">
+            {ledger.deal.accountName}
+          </Link>
+          <span className="text-muted">/</span>
+          <span className="text-slate">{definition.shortLabel}</span>
+        </nav>
+        <ClaimSwitcher ledger={ledger} activeId={definition.id} role={role} />
+      </div>
 
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div className="max-w-3xl">
           <Eyebrow>{ledger.deal.accountName} · evidence detail</Eyebrow>
-          <h1 className="mt-1 text-3xl font-bold tracking-tight text-ink">{entry.statement}</h1>
-          <p className={cx("mt-2 text-lg font-semibold leading-snug", statusText[status])} data-testid="status-headline">
-            {x.headline}
-          </p>
-          <p className="mt-1 text-[15px] text-slate">
-            The CRM says <strong className="text-ink">{formatClaimValue(definition, claim.crmValue)}</strong>. This is what the connected sources say.
+          <h1 className="mt-0.5 text-3xl font-bold tracking-tight text-ink">{entry.statement}</h1>
+          <p className="mt-1.5 text-lg font-semibold leading-snug">
+            <span className={statusText[status]} data-testid="status-headline">
+              {x.headline}
+            </span>{" "}
+            <span className="text-[15px] font-normal text-slate">
+              The CRM says <strong className="font-semibold text-ink">{formatClaimValue(definition, claim.crmValue)}</strong>.
+            </span>
           </p>
         </div>
         <StatusBadge status={status} size="lg" locked />
       </header>
 
-      <HowDetermined entry={entry} />
-
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
-        <div className="space-y-6">
+      <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="space-y-4">
           <section aria-label="Evidence">
-            <h2 className="mb-3 text-lg font-bold text-ink">{entry.evidence.length > 0 ? "Evidence, in order" : "Evidence"}</h2>
+            <h2 className="mb-2 text-base font-bold text-ink">{entry.evidence.length > 0 ? "Evidence, in order" : "Evidence"}</h2>
             {entry.evidence.length === 0 ? (
               <EmptyEvidence ledger={ledger} entry={entry} />
             ) : (
@@ -79,19 +80,18 @@ export function ClaimDetailScreen({ dealId, definitionId, role }: { dealId: stri
             )}
           </section>
 
+          <HowDetermined entry={entry} />
+
           <PeopleDecide ledger={ledger} entry={entry} role={role} onAction={setAction} />
         </div>
 
-        <aside className="space-y-4">
-          <Card className="p-5" as="section">
+        <aside className="space-y-3">
+          <Card className="p-4" as="section">
             <Eyebrow>Business status · computed by policy</Eyebrow>
-            <div className="mt-2 flex items-center gap-3">
-              <StatusBadge status={status} size="lg" locked />
-            </div>
-            <p className="mt-3 text-[15px] leading-relaxed text-ink" data-testid="status-reason">
+            <p className="mt-2 text-[15px] leading-relaxed text-ink" data-testid="status-reason">
               {x.reason}
             </p>
-            <details className="group mt-4 border-t border-line-soft pt-3" data-testid="rule-details">
+            <details className="group mt-3 border-t border-line-soft pt-2.5" data-testid="rule-details">
               <summary className="flex cursor-pointer list-none items-center gap-2 text-[13px] font-semibold text-accent hover:underline">
                 <span aria-hidden className="inline-block transition-transform group-open:rotate-90">▸</span>
                 View rule details
@@ -104,11 +104,11 @@ export function ClaimDetailScreen({ dealId, definitionId, role }: { dealId: stri
                   value={`${entry.rule.freshnessDays} days${x.evidenceAgeDays !== null ? ` · newest supporting evidence is ${x.evidenceAgeDays} days old` : ""}`}
                 />
                 <Rule label="Precedence" value="Later or more authoritative evidence wins" />
-                <Rule label="Policy version" value={`${x.ruleVersion} (illustrative)`} />
+                <Rule label="Policy version" value={x.ruleVersion} />
                 <Rule label="Computed" value={formatDateTime(claim.lastComputedAt)} />
               </dl>
               <p className="mt-3 rounded-lg bg-canvas px-3 py-2 text-xs leading-snug text-slate">
-                Deterministic. No model score and no human decision is an input to this status.
+                Deterministic. No model score and no human decision is an input to the business status.
               </p>
             </details>
           </Card>
@@ -116,10 +116,10 @@ export function ClaimDetailScreen({ dealId, definitionId, role }: { dealId: stri
           <ConfidenceCard entry={entry} />
 
           {(status === "UNSUPPORTED" || status === "CONTRADICTED" || status === "STALE") && (
-            <Card className="p-5" as="section">
+            <Card className="p-4" as="section">
               <Eyebrow>Next question to ask</Eyebrow>
-              <p className="mt-2 text-[15px] font-semibold leading-snug text-ink">{definition.nextQuestion}</p>
-              <p className="mt-2 text-xs text-muted">Suggested by policy. The ledger will not contact the customer for you.</p>
+              <p className="mt-1.5 text-[15px] font-semibold leading-snug text-ink">{definition.nextQuestion}</p>
+              <p className="mt-1.5 text-xs text-muted">Suggested by policy. The ledger will not contact the customer for you.</p>
             </Card>
           )}
         </aside>
@@ -155,12 +155,12 @@ function HowDetermined({ entry }: { entry: ClaimEntry }) {
     {
       k: "Deterministic policy",
       note: "RevOps rules",
-      t: `Applied this claim's rule to ${n === 0 ? "no evidence" : `${customer} customer-side passage${customer === 1 ? "" : "s"}${n - customer > 0 ? ` and ${n - customer} seller-supplied item${n - customer === 1 ? "" : "s"}` : ""}`} and computed ${status}.`,
+      t: `Applied this claim's rule to ${n === 0 ? "no evidence" : `${customer} customer-side passage${customer === 1 ? "" : "s"}${n - customer > 0 ? ` and ${n - customer} seller-supplied item${n - customer === 1 ? "" : "s"}` : ""}`} and computed the business status: ${status}.`,
     },
     {
       k: "Human decision",
       note: "judgement, with a reason",
-      t: people === 0 ? "None logged on this claim yet. When one is, it sits beside the status and never rewrites it." : `${people} decision${people === 1 ? "" : "s"} logged beside the status. It does not rewrite it.`,
+      t: people === 0 ? "None logged on this claim yet. When one is, it sits beside the business status and never rewrites it." : `${people} decision${people === 1 ? "" : "s"} logged beside the business status. It does not rewrite it.`,
     },
   ];
   return (
@@ -179,7 +179,7 @@ function HowDetermined({ entry }: { entry: ClaimEntry }) {
           </li>
         ))}
       </ol>
-      <p className="mt-3 text-xs text-muted">AI interprets. Policy computes. People decide. Extraction confidence is never an input to the status.</p>
+      <p className="mt-3 text-xs text-muted">AI interprets. Policy computes. People decide. Extraction confidence is never an input to the business status.</p>
     </details>
   );
 }
@@ -220,56 +220,55 @@ const DISPOSITION_STYLE: Record<EvidenceDisposition, string> = {
   SELLER_SUPPLIED: "bg-uns-soft text-uns border-uns-edge/40",
 };
 
-function authorityText(e: EvidenceView, entry: ClaimEntry): string {
-  if (e.authority === "ACCEPTED") return `Accepted authority · rank ${entry.rule.acceptedAuthorities.indexOf(e.speakerRole) + 1} of ${entry.rule.acceptedAuthorities.length}`;
-  if (e.authority === "SELLER_SUPPLIED") return "Seller-supplied · never admissible";
-  return `Customer context · ${ROLE_LABEL[e.speakerRole]} is not an accepted authority here`;
+/** "POLICY TREATMENT": how the policy treats this passage for this claim. Wording only; the ranking logic is unchanged. */
+function policyTreatment(e: EvidenceView, entry: ClaimEntry): string {
+  if (e.authority === "ACCEPTED") {
+    return `Accepted evidence — ${ROLE_LABEL[e.speakerRole]}, rank ${entry.rule.acceptedAuthorities.indexOf(e.speakerRole) + 1} of ${entry.rule.acceptedAuthorities.length}`;
+  }
+  if (e.authority === "SELLER_SUPPLIED") return "Seller-supplied — never counted as customer evidence";
+  return `Context only — ${ROLE_LABEL[e.speakerRole]} is not an accepted authority for ${entry.definition.shortLabel}`;
+}
+
+function shortTreatment(e: EvidenceView): string {
+  return e.authority === "ACCEPTED" ? "accepted evidence" : e.authority === "SELLER_SUPPLIED" ? "seller-supplied" : "customer context";
 }
 
 function EvidenceCard({ e, total, entry, onOpen }: { e: EvidenceView; total: number; entry: ClaimEntry; onOpen: () => void }) {
   const seller = e.authority === "SELLER_SUPPLIED";
+  const roleBasis = e.speakerRoleBasis === "AI_PROPOSED" ? "proposed by AI" : e.speakerRoleBasis === "SELLER_ATTACHED" ? "rep" : "corrected by a person";
   return (
     <article className="rounded-xl border border-line bg-surface" data-testid={`evidence-${e.id}`}>
-      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-line-soft px-5 py-3">
-        <div className="flex items-center gap-3">
-          <span className="grid h-7 w-7 place-items-center rounded-full bg-ink text-sm font-bold text-white" aria-label={`Sequence ${e.sequence} of ${total}`}>
+      <header className="flex flex-wrap items-center justify-between gap-2 border-b border-line-soft px-4 py-2">
+        <div className="flex items-center gap-2.5">
+          <span className="grid h-6 w-6 place-items-center rounded-full bg-ink text-xs font-bold text-white" aria-label={`Passage ${e.sequence} of ${total}`}>
             {e.sequence}
           </span>
-          <div>
-            <p className="text-sm font-bold text-ink">{SOURCE_TYPE_LABEL[e.sourceType]}</p>
-            <p className="text-xs text-muted">{formatDateTime(e.timestamp)}</p>
-          </div>
+          <p className="text-sm font-bold text-ink">
+            {SOURCE_TYPE_LABEL[e.sourceType]} <span className="font-normal text-muted">· {formatDateTime(e.timestamp)}</span>
+          </p>
         </div>
-        <span className={cx("rounded-full border px-2.5 py-1 text-xs font-bold", DISPOSITION_STYLE[e.disposition])}>{DISPOSITION_LABEL[e.disposition]}</span>
+        <span className={cx("rounded-full border px-2.5 py-0.5 text-xs font-bold", DISPOSITION_STYLE[e.disposition])}>{DISPOSITION_LABEL[e.disposition]}</span>
       </header>
 
-      <div className="px-5 py-4">
-        <Quote className="text-lg leading-relaxed">{e.quote}</Quote>
-        <dl className="mt-4 grid gap-x-6 gap-y-3 text-[13px] sm:grid-cols-2">
-          <Meta label="Speaker" value={e.speaker} />
-          <Meta
-            label="Role"
-            value={
-              <>
-                {ROLE_LABEL[e.speakerRole]}
-                <span className="ml-1.5 text-xs text-muted">{e.speakerRoleBasis === "AI_PROPOSED" ? "proposed by AI" : e.speakerRoleBasis === "SELLER_ATTACHED" ? "rep" : "corrected by a person"}</span>
-              </>
-            }
-          />
-          <Meta label="Authority (policy)" value={authorityText(e, entry)} />
-          <Meta label="Sequence" value={`${e.sequence} of ${total}, by time`} />
-        </dl>
+      <div className="px-4 py-3">
+        <Quote className="text-[17px] leading-snug">{e.quote}</Quote>
+        <p className="mt-2 text-[13px] text-slate" data-testid={`meta-${e.id}`}>
+          <span className="font-semibold text-ink">{e.speaker}</span> · {ROLE_LABEL[e.speakerRole]} ({roleBasis}) · {shortTreatment(e)}
+        </p>
+        <p className="mt-0.5 text-xs text-muted">
+          <span className="font-bold uppercase tracking-wide">Policy treatment</span> {policyTreatment(e, entry)}
+        </p>
       </div>
 
-      <footer className="flex flex-wrap items-center justify-between gap-3 rounded-b-xl border-t border-line-soft bg-accent-soft/60 px-5 py-3">
+      <footer className="flex flex-wrap items-center justify-between gap-2 rounded-b-xl border-t border-line-soft bg-accent-soft/60 px-4 py-2">
         {seller ? (
           <p className="text-xs text-slate">Seller-side material is never customer evidence, so no extraction confidence is shown for it.</p>
         ) : (
-          <p className="text-xs text-slate" data-testid={`confidence-${e.id}`}>
-            <span className="font-bold text-accent">AI extraction confidence {Math.round(e.extractionConfidence * 100)}%</span> · how sure the model is it read this passage correctly
+          <p className="text-xs font-bold text-accent" data-testid={`confidence-${e.id}`}>
+            AI extraction confidence {Math.round(e.extractionConfidence * 100)}%
           </p>
         )}
-        <Button variant="secondary" className="!px-3 !py-1.5 !text-[13px]" onClick={onOpen} aria-label={`Open source for passage ${e.sequence}`}>
+        <Button variant="secondary" className="!px-3 !py-1 !text-[13px]" onClick={onOpen} aria-label={`Open source for passage ${e.sequence}`}>
           Open source <span aria-hidden>↗</span>
         </Button>
       </footer>
@@ -277,21 +276,12 @@ function EvidenceCard({ e, total, entry, onOpen }: { e: EvidenceView; total: num
   );
 }
 
-function Meta({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div>
-      <dt className="text-[11px] font-bold uppercase tracking-wide text-muted">{label}</dt>
-      <dd className="mt-0.5 text-slate">{value}</dd>
-    </div>
-  );
-}
-
 function Connector({ prev, next }: { prev: EvidenceView; next: EvidenceView }) {
   const days = Math.max(0, Math.round((Date.parse(next.timestamp) - Date.parse(prev.timestamp)) / 86_400_000));
   const higher = next.authority === "ACCEPTED" && prev.authority !== "ACCEPTED";
   return (
-    <div className="flex items-center gap-3 py-2.5 pl-[22px]" aria-hidden>
-      <span className="h-7 w-px bg-line" />
+    <div className="flex items-center gap-3 py-1.5 pl-[19px]" aria-hidden>
+      <span className="h-5 w-px bg-line" />
       <span className="text-xs font-semibold text-muted">
         ↓ {days} day{days === 1 ? "" : "s"} later
         {higher && <span className="text-ink"> · from a more authoritative source</span>}
@@ -326,12 +316,13 @@ function ConfidenceCard({ entry }: { entry: ClaimEntry }) {
   const x = entry.claim.explanation;
   const sup = entry.evidence.find((e) => x.supersededEvidenceIds.includes(e.id));
   return (
-    <Card className="p-5" as="section">
-      <Eyebrow>Extraction confidence · AI, separate from status</Eyebrow>
+    <Card className="p-4" as="section">
+      <Eyebrow>Extraction confidence · AI, not the business status</Eyebrow>
+      <p className="mt-1 text-xs text-muted">How sure the model is that it read each passage correctly.</p>
       {extracted.length === 0 ? (
         <p className="mt-2 text-sm text-slate">No customer-side passage was extracted for this claim, so there is no confidence to show.</p>
       ) : (
-        <ul className="mt-3 space-y-3">
+        <ul className="mt-2.5 space-y-2.5">
           {extracted.map((e) => (
             <li key={e.id}>
               <div className="flex items-baseline justify-between text-sm">
@@ -347,15 +338,13 @@ function ConfidenceCard({ entry }: { entry: ClaimEntry }) {
           ))}
         </ul>
       )}
-      <p className="mt-4 text-[13px] leading-relaxed text-slate">
+      <p className="mt-3 text-[13px] leading-snug text-slate">
         {sup ? (
           <>
-            The model was <strong>{Math.round(sup.extractionConfidence * 100)}%</strong> sure that {sup.speaker} said it. The claim is still{" "}
-            <strong className={statusText[entry.claim.computedStatus]}>{STATUS_LABEL[entry.claim.computedStatus].toUpperCase()}</strong>, because {entry.claim.explanation.reasonCode.startsWith("CONTRADICTED") ? "later, more authoritative evidence disagrees" : "policy decides, not the model"}.
+            The model was <strong>{Math.round(sup.extractionConfidence * 100)}%</strong> sure that {sup.speaker} said it. The business status is still{" "}
+            <strong className={statusText[entry.claim.computedStatus]}>{STATUS_LABEL[entry.claim.computedStatus].toUpperCase()}</strong>.{" "}
           </>
-        ) : (
-          <>Confidence measures whether the model read the passage correctly. It never decides whether the claim holds.</>
-        )}{" "}
+        ) : null}
         <strong>Extraction confidence ≠ business status.</strong>
       </p>
     </Card>
@@ -369,13 +358,13 @@ function PeopleDecide({ ledger, entry, role, onAction }: { ledger: DealLedger; e
   const status = entry.claim.computedStatus;
   const decisions = entry.decisions;
   return (
-    <section aria-label="People decide" className="rounded-xl border border-line bg-surface p-5">
+    <section aria-label="People decide" className="rounded-xl border border-line bg-surface p-4">
       <Eyebrow>People decide</Eyebrow>
       <h2 className="mt-1 text-lg font-bold text-ink">{isRep ? "Your move, before the review" : "Your decision"}</h2>
 
-      <div className="mt-4 grid gap-3 md:grid-cols-[1fr_auto_1.3fr] md:items-stretch" data-testid="status-vs-decision">
+      <div className="mt-3 grid gap-3 md:grid-cols-[1fr_auto_1.3fr] md:items-stretch" data-testid="status-vs-decision">
         <div className="rounded-lg border border-line px-4 py-3">
-          <p className="text-[11px] font-bold uppercase tracking-wide text-muted">Computed evidence status</p>
+          <p className="text-[11px] font-bold uppercase tracking-wide text-muted">Business status</p>
           <div className="mt-2">
             <StatusBadge status={status} locked />
           </div>
@@ -396,11 +385,11 @@ function PeopleDecide({ ledger, entry, role, onAction }: { ledger: DealLedger; e
       </div>
       {decisions.length > 0 && (
         <p className="mt-3 text-[13px] font-semibold text-ink" data-testid="status-unchanged">
-          Status is still {STATUS_LABEL[status].toUpperCase()}. The decision sits beside it.
+          Business status is still {STATUS_LABEL[status].toUpperCase()}. The decision sits beside it.
         </p>
       )}
 
-      <div className="mt-5 flex flex-wrap gap-2">
+      <div className="mt-4 flex flex-wrap gap-2">
         {isRep ? (
           <>
             <Button variant="primary" onClick={() => onAction("REP_VERIFY")}>
