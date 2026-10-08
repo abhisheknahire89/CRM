@@ -9,7 +9,7 @@ import { cx } from "./ui";
 export function sourceSummary(evidence: EvidenceView[]): string {
   if (evidence.length === 0) return "No customer evidence in connected sources";
   const label = (e: EvidenceView) => {
-    if (e.authority === "SELLER_SUPPLIED") return e.sourceType === "SELLER_ATTACHMENT" ? "Rep-attached note" : "Rep note";
+    if (e.authority === "SELLER_SUPPLIED") return e.sourceType === "SELLER_ATTACHMENT" ? "Seller-supplied context" : "Rep note";
     const kind = e.sourceType === "CALL_TRANSCRIPT" ? "call" : "email";
     return `${ROLE_LABEL[e.speakerRole]} ${kind}`;
   };

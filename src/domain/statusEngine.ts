@@ -111,6 +111,7 @@ export function computeClaimStatus(input: ComputeInput): StatusExplanation {
     status: ComputedStatus,
     reasonCode: StatusReasonCode,
     reason: string,
+    headline: string,
     controlling: Evidence | undefined,
     extra: Partial<StatusExplanation> = {},
   ): StatusExplanation => ({
@@ -118,6 +119,7 @@ export function computeClaimStatus(input: ComputeInput): StatusExplanation {
     status,
     reasonCode,
     reason,
+    headline,
     controllingEvidenceId: controlling?.id ?? null,
     supersededEvidenceIds: [],
     evidenceAgeDays: supporting.length ? ageInDays(latest(supporting)!.timestamp, now) : null,
@@ -127,18 +129,22 @@ export function computeClaimStatus(input: ComputeInput): StatusExplanation {
   // 2. nothing admissible
   if (admissible.length === 0) {
     if (!hasCrm && evidence.length === 0) {
-      return make("UNKNOWN", "UNKNOWN_NO_CLAIM_NO_EVIDENCE", "Nobody has claimed this and no evidence exists in connected sources.", undefined);
+      return make("UNKNOWN", "UNKNOWN_NO_CLAIM_NO_EVIDENCE", "Nobody has claimed this and no evidence exists in connected sources.", "Nobody has claimed this, and there is no evidence.", undefined);
     }
     let why: string;
+    let head: string;
     if (contextOnly.length > 0) {
+      head = "Customer evidence exists, but not from an accepted authority.";
       const who = [...new Set(contextOnly.map((e) => ROLE_LABEL[e.speakerRole]))].join(", ");
       why = `The CRM says ${fmt(crmValue)}. Customer evidence exists (${who}), but not from an accepted authority (${accepted}), so it is context, not support.`;
     } else if (sellerSupplied.length > 0) {
+      head = "Only seller-supplied context. No customer evidence in connected sources.";
       why = `The CRM says ${fmt(crmValue)}. The only evidence is seller-supplied, which is not customer evidence. No admissible customer-side ${def.shortLabel.toLowerCase()} evidence in connected sources.`;
     } else {
+      head = "No customer evidence in connected sources.";
       why = `The CRM says ${fmt(crmValue)}, but no admissible customer evidence exists in connected sources.`;
     }
-    return make("UNSUPPORTED", "UNSUPPORTED_NO_ADMISSIBLE_EVIDENCE", why, undefined);
+    return make("UNSUPPORTED", "UNSUPPORTED_NO_ADMISSIBLE_EVIDENCE", why, head, undefined);
   }
 
   const bestSupport = best(rule, supporting);
@@ -171,6 +177,7 @@ export function computeClaimStatus(input: ComputeInput): StatusExplanation {
         "CONTRADICTED",
         target ? "CONTRADICTED_LATER_OR_HIGHER_AUTHORITY" : "CONTRADICTED_NO_SUPPORT",
         reason,
+        `${prefix}.`,
         d,
         { supersededEvidenceIds: target && !s ? [target.id] : [] },
       );
@@ -186,6 +193,7 @@ export function computeClaimStatus(input: ComputeInput): StatusExplanation {
       "STALE",
       "STALE_EVIDENCE_OUTSIDE_WINDOW",
       `${who(newest)} supported this on ${formatDate(newest.timestamp)}, ${age} days ago. The freshness window for this claim is ${rule.freshnessDays} days.`,
+      `Supporting evidence is ${age} days old; the window is ${rule.freshnessDays} days.`,
       bestSupport,
     );
   }
@@ -193,6 +201,7 @@ export function computeClaimStatus(input: ComputeInput): StatusExplanation {
     "SUPPORTED",
     "SUPPORTED_ACCEPTED_AUTHORITY",
     `Admissible evidence from ${who(bestSupport!)} on ${formatDate(bestSupport!.timestamp)}, within the ${rule.freshnessDays}-day freshness window; nothing later or more authoritative disagrees.`,
+    `Supported by ${ROLE_LABEL[bestSupport!.speakerRole]} evidence from ${formatDate(bestSupport!.timestamp)}.`,
     bestSupport,
   );
 }

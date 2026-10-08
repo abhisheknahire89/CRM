@@ -10,7 +10,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
-    "docs:build": "python3 scripts/make-architecture-svg.py && node scripts/build-engineering-html.mjs"
+    "docs:build": "python3 scripts/make-architecture-svg.py && node scripts/build-engineering-html.mjs docs/ENGINEERING_APPROACH.md engineering-approach.html detailed && node scripts/build-engineering-html.mjs docs/ENGINEERING_APPROACH_CONCISE.md engineering-approach-concise.html concise",
+    "docs:pdf": "bash scripts/export-pdf.sh"
   },
   "dependencies": {
     "next": "16.4.0",

@@ -71,9 +71,9 @@ export function HumanActionModal({ mode, ledger, entry, suggestedReason, onClose
       placeholder: "e.g. Move close date to 12 Nov once procurement confirms.",
     },
     REP_ATTACH: {
-      title: "Attach evidence",
-      field: "Describe or paste the evidence",
-      submit: "Attach as seller-supplied",
+      title: "Add seller-supplied context",
+      field: "Describe the context",
+      submit: "Add seller-supplied context",
       placeholder: "e.g. Tomas (customer security) told me by phone on 7 Oct that the review is done.",
     },
   };
@@ -194,7 +194,7 @@ export function HumanActionModal({ mode, ledger, entry, suggestedReason, onClose
         <div className="rounded-lg border border-line-soft bg-accent-soft px-4 py-3 text-[13px] leading-relaxed text-slate">
           {mode === "REP_ATTACH" ? (
             <>
-              <strong className="text-ink">Marked seller-supplied.</strong> Your manager will see it, but it is not customer evidence from a connected source, so it does not change the status. If the customer confirms in email or on a call, the evidence will be picked up and the status recomputed.
+              <strong className="text-ink">Visible to your manager.</strong> It does not count as verified customer evidence until confirmed through a connected source. When the customer confirms in email or on a call, the evidence is picked up and the status recomputed.
             </>
           ) : entry ? (
             <>

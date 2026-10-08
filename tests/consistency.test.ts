@@ -13,6 +13,8 @@ const read = (p: string) => readFileSync(p, "utf8");
 const contract = read("docs/PRODUCT_CONTRACT.md");
 const eng = read("docs/ENGINEERING_APPROACH.md");
 const engHtml = read("engineering-approach.html");
+const concise = read("docs/ENGINEERING_APPROACH_CONCISE.md");
+const conciseHtml = read("engineering-approach-concise.html");
 const demo = read("docs/DEMO_SCRIPT.md");
 const matrix = read("docs/CONSISTENCY_MATRIX.md");
 const readme = read("README.md");
@@ -124,6 +126,64 @@ describe("demo script, matrix and README", () => {
   });
 
   it("all docs use the locked principle verbatim", () => {
-    for (const [name, doc] of Object.entries({ contract, eng, demo, matrix, readme })) expect(flat(doc), name).toMatch(PRINCIPLE);
+    for (const [name, doc] of Object.entries({ contract, eng, concise, demo, matrix, readme })) expect(flat(doc), name).toMatch(PRINCIPLE);
+  });
+});
+
+describe("concise engineering approach ↔ code and ↔ the detailed appendix", () => {
+  const AUDIT = "This tests whether evidence quality separates outcomes enough to justify a live pilot. It does not establish causality.";
+  const AUTHORITY =
+    "Start with claims where authority is relatively explicit, expose the inferred role, allow one-step correction, measure role accuracy separately, and narrow the claim set if reliability is inadequate.";
+
+  it("has exactly the six requested sections, in order", () => {
+    const h2 = [...concise.matchAll(/^## (.+)$/gm)].map((m) => m[1]);
+    expect(h2).toEqual([
+      "1. MVP and engineering principles",
+      "2. System architecture",
+      "3. The AI / policy / human boundary, using Castellan",
+      "4. AI quality, evaluation and failure handling",
+      "5. Security, privacy and enterprise readiness",
+      "6. Team, implementation plan, stage gates and top risks",
+    ]);
+  });
+
+  it("its JSON equals the prototype: AI output byte-for-byte, policy output as a subset of the engine's", async () => {
+    const blocks = [...concise.matchAll(/```json\n([\s\S]*?)```/g)].map((m) => JSON.parse(m[1]));
+    expect(blocks.find((b) => b.extraction_id === "ex-cf-proc-email")).toEqual(demoExtractions.find((e) => e.extraction_id === "ex-cf-proc-email"));
+    const out = blocks.find((b) => b.status === "CONTRADICTED")!;
+    const x = (await new LocalEvidenceRepository().getDealLedger("castellan-freight"))!.claims.find((c) => c.definition.id === "PROCUREMENT_DURATION")!.claim.explanation;
+    for (const k of Object.keys(out)) expect(out[k], k).toEqual((x as unknown as Record<string, unknown>)[k]);
+  });
+
+  it("names the six top risks and carries the authority-mapping and audit wording verbatim (also in the appendix)", () => {
+    expect(concise).toContain("TOP PRODUCT/TECHNICAL RISKS");
+    for (const r of ["Authority / role identification", "Missing communication channels", "False extraction / interpretation", "Rep surveillance / adoption", "Platform / API dependency", "Evidence quality may not separate deal outcomes"]) {
+      expect(concise).toContain(r);
+    }
+    expect(concise).toContain(AUTHORITY);
+    expect(eng).toContain(AUTHORITY);
+    expect(concise).toContain(AUDIT);
+    expect(eng).toContain(AUDIT);
+  });
+
+  it("agrees with the appendix on scope, thresholds, gates and team", () => {
+    const t = flat(concise);
+    for (const s of STATUSES) expect(t).toContain(s);
+    expect(t).toMatch(/≥ 90 %/);
+    expect(t).toMatch(/> 50 %/);
+    expect(t).toMatch(/50 closed deals × about 8 claims ≈ 400/);
+    expect(t).toMatch(/read-only with respect to the external CRM/i);
+    expect(t).toMatch(/LLM confidence does not determine status/i);
+    for (const g of ["G0", "G1", "G2", "G3"]) expect(t).toContain(g);
+    for (const role of ["Product Manager", "Product Designer", "2 Full-stack / Backend Engineers", "Applied AI / ML Engineer"]) expect(t).toContain(role);
+    for (const n of ["Win/loss prediction", "Autonomous emails", "WhatsApp", "Buyer portal", "Custom rules builder", "Relationship graph", "Renewals", "write-back"]) {
+      expect(t.toLowerCase()).toContain(n.toLowerCase());
+    }
+  });
+
+  it("the standalone concise HTML is generated from the markdown", () => {
+    for (const h of [...concise.matchAll(/^## (.+)$/gm)].map((m) => m[1])) expect(conciseHtml).toContain(h.replace(/&/g, "&amp;"));
+    expect(conciseHtml).toContain("<svg");
+    expect(conciseHtml).toContain("TOP PRODUCT/TECHNICAL RISKS");
   });
 });

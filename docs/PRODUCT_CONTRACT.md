@@ -17,7 +17,7 @@ The **first product** is the **Deal Evidence Ledger**: before a forecast call, i
 | Role | Who | In the product |
 |---|---|---|
 | **Primary user** | Front-line Sales Manager | Reviews a short list of priority deals at the weekly forecast review; owns the forecast call |
-| **Secondary user** | Account Executive (rep) | Sees their own flags *first* (the day before); can inspect, dispute, attach evidence, say "I'll verify with the customer" |
+| **Secondary user** | Account Executive (rep) | Sees their own flags *first* (the day before); can inspect, dispute, **add seller-supplied context**, say "I'll verify with the customer" |
 | **Economic buyer** | CRO / VP Sales | Buys a read-only audit first, then the recurring weekly review. Not a prototype role |
 | **Operational champion** | RevOps | Owns a simple, predefined policy: which claims, which authority, which freshness window |
 
@@ -32,7 +32,7 @@ Primary recurring workflow: **weekly forecast review**.
 | Layer | Nature | Does | Never does |
 |---|---|---|---|
 | **AI interprets** | Probabilistic | Finds relevant passages in calls/email · extracts the exact quote · identifies the speaker · proposes the speaker's role · maps the evidence to a *predefined* claim · structures dates/durations · flags candidate conflicts with later evidence · returns an **extraction confidence** | Decide the business status · predict win/loss · contact customers · write to the CRM |
-| **Policy computes** | Deterministic, RevOps-configured | Computes `SUPPORTED · UNSUPPORTED · CONTRADICTED · STALE · UNKNOWN` from evidence + a simple rule · computes review priority and the next question to ask | Use model confidence as status · accept free-form rules |
+| **Policy computes** | Deterministic, RevOps-configured | Computes `SUPPORTED · UNSUPPORTED · CONTRADICTED · STALE · UNKNOWN` from evidence + a simple rule · computes evidence review priority and the next question to ask | Use model confidence as status · accept free-form rules |
 | **People decide** | Judgement, with a reason | Forecast judgement · customer communication · adding missing evidence · disputing the AI reading · changing the CRM · exceptions | Rewrite the computed status. A decision is logged **beside** it |
 
 **Fundamental separation:** `Extraction confidence ≠ business status`, and a `HumanDecision` never mutates a `ComputedStatus`.
@@ -82,7 +82,7 @@ Customer-side evidence from someone who is *not* an accepted authority (for exam
 * **Match modes:** `EQUALS` (boolean), `AT_MOST` (duration in weeks, date no later than the CRM date).
 * **Freshness** is measured from the controlling supporting evidence to the evaluation time. A contradiction is not softened by age.
 * The function **takes no `HumanDecision` and no model confidence as input**. That is the type-level guarantee.
-* **Review priority** and the **next question to ask** are also computed by policy (§8).
+* **Evidence review priority** and the **next question to ask** are also computed by policy (§8). The priority is *based on evidence status only, not a win probability*.
 
 ## 5. Claim catalogue (RevOps starter set, 6 of the 5–8 allowed)
 
@@ -134,7 +134,7 @@ Optional expansion *only if validated* (deck slide 8): human-confirmed write-bac
 ## 8. Policy outputs beyond status
 
 * **Review-queue inclusion** (deck slide 5): `forecast ∈ {COMMIT, BEST_CASE}` **and** at least one claim is `UNSUPPORTED` or `CONTRADICTED`. `STALE` is displayed but does not on its own put a deal in the queue (D-05).
-* **Review priority** (deterministic):
+* **Evidence review priority** (deterministic; shown with the note "Based on evidence status only — not a win probability."):
   * `HIGH` — Commit and (≥ 1 contradicted **or** ≥ 2 unsupported)
   * `MEDIUM` — (Commit and exactly 1 unsupported) **or** (Best Case and (≥ 1 contradicted or ≥ 2 unsupported))
   * `LOW` — everything else in the queue

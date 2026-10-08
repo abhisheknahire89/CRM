@@ -46,11 +46,12 @@ export function ClaimDetailScreen({ dealId, definitionId, role }: { dealId: stri
       <ClaimSwitcher ledger={ledger} activeId={definition.id} role={role} />
 
       <header className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <Eyebrow>
-            {ledger.deal.accountName} · evidence detail
-          </Eyebrow>
+        <div className="max-w-3xl">
+          <Eyebrow>{ledger.deal.accountName} · evidence detail</Eyebrow>
           <h1 className="mt-1 text-3xl font-bold tracking-tight text-ink">{entry.statement}</h1>
+          <p className={cx("mt-2 text-lg font-semibold leading-snug", statusText[status])} data-testid="status-headline">
+            {x.headline}
+          </p>
           <p className="mt-1 text-[15px] text-slate">
             The CRM says <strong className="text-ink">{formatClaimValue(definition, claim.crmValue)}</strong>. This is what the connected sources say.
           </p>
@@ -58,7 +59,7 @@ export function ClaimDetailScreen({ dealId, definitionId, role }: { dealId: stri
         <StatusBadge status={status} size="lg" locked />
       </header>
 
-      <ProductionStrip entry={entry} />
+      <HowDetermined entry={entry} />
 
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
         <div className="space-y-6">
@@ -90,20 +91,26 @@ export function ClaimDetailScreen({ dealId, definitionId, role }: { dealId: stri
             <p className="mt-3 text-[15px] leading-relaxed text-ink" data-testid="status-reason">
               {x.reason}
             </p>
-            <dl className="mt-4 space-y-2.5 border-t border-line-soft pt-4 text-[13px]">
-              <Rule label="Accepted authority" value={entry.rule.acceptedAuthorities.map((r) => ROLE_LABEL[r]).join(" › ")} />
-              <Rule label="Admissible evidence" value={ADMISSIBLE_EVIDENCE_TEXT[definition.id]} />
-              <Rule
-                label="Freshness window"
-                value={`${entry.rule.freshnessDays} days${x.evidenceAgeDays !== null ? ` · newest supporting evidence is ${x.evidenceAgeDays} days old` : ""}`}
-              />
-              <Rule label="Precedence" value="Later or more authoritative evidence wins" />
-              <Rule label="Policy version" value={`${x.ruleVersion} (illustrative)`} />
-              <Rule label="Computed" value={formatDateTime(claim.lastComputedAt)} />
-            </dl>
-            <p className="mt-4 rounded-lg bg-canvas px-3 py-2 text-xs leading-snug text-slate">
-              Deterministic. No model score and no human decision is an input to this status.
-            </p>
+            <details className="group mt-4 border-t border-line-soft pt-3" data-testid="rule-details">
+              <summary className="flex cursor-pointer list-none items-center gap-2 text-[13px] font-semibold text-accent hover:underline">
+                <span aria-hidden className="inline-block transition-transform group-open:rotate-90">▸</span>
+                View rule details
+              </summary>
+              <dl className="mt-3 space-y-2.5 text-[13px]">
+                <Rule label="Accepted authority" value={entry.rule.acceptedAuthorities.map((r) => ROLE_LABEL[r]).join(" › ")} />
+                <Rule label="Admissible evidence" value={ADMISSIBLE_EVIDENCE_TEXT[definition.id]} />
+                <Rule
+                  label="Freshness window"
+                  value={`${entry.rule.freshnessDays} days${x.evidenceAgeDays !== null ? ` · newest supporting evidence is ${x.evidenceAgeDays} days old` : ""}`}
+                />
+                <Rule label="Precedence" value="Later or more authoritative evidence wins" />
+                <Rule label="Policy version" value={`${x.ruleVersion} (illustrative)`} />
+                <Rule label="Computed" value={formatDateTime(claim.lastComputedAt)} />
+              </dl>
+              <p className="mt-3 rounded-lg bg-canvas px-3 py-2 text-xs leading-snug text-slate">
+                Deterministic. No model score and no human decision is an input to this status.
+              </p>
+            </details>
           </Card>
 
           <ConfidenceCard entry={entry} />
@@ -132,41 +139,48 @@ export function ClaimDetailScreen({ dealId, definitionId, role }: { dealId: stri
   );
 }
 
-// ── How this was produced: AI → Policy → People ──────────────────────────────
+// ── "How was this status determined?" (collapsed by default) ─────────────────
 
-function ProductionStrip({ entry }: { entry: ClaimEntry }) {
+function HowDetermined({ entry }: { entry: ClaimEntry }) {
   const n = entry.evidence.length;
   const customer = entry.evidence.filter((e) => e.authority !== "SELLER_SUPPLIED").length;
   const people = entry.decisions.length;
+  const status = STATUS_LABEL[entry.claim.computedStatus].toUpperCase();
   const steps = [
     {
-      k: "AI interprets",
-      t: n === 0 ? "Found no passage for this claim" : `Found ${n} passage${n === 1 ? "" : "s"}, extracted the exact quote${n === 1 ? "" : "s"}, proposed speaker and role`,
-      note: "Probabilistic",
+      k: "AI interpretation",
+      note: "probabilistic",
+      t: n === 0 ? "No passage was found for this claim." : `Found ${n} passage${n === 1 ? "" : "s"}, extracted the exact quote${n === 1 ? "" : "s"}, and proposed a speaker and role for each.`,
     },
     {
-      k: "Policy computes",
-      t: `Applied the claim's rule to ${n === 0 ? "no evidence" : `${customer} customer-side passage${customer === 1 ? "" : "s"}${n - customer > 0 ? ` and ${n - customer} seller-supplied item${n - customer === 1 ? "" : "s"}` : ""}`} → ${STATUS_LABEL[entry.claim.computedStatus].toUpperCase()}`,
-      note: "Deterministic",
+      k: "Deterministic policy",
+      note: "RevOps rules",
+      t: `Applied this claim's rule to ${n === 0 ? "no evidence" : `${customer} customer-side passage${customer === 1 ? "" : "s"}${n - customer > 0 ? ` and ${n - customer} seller-supplied item${n - customer === 1 ? "" : "s"}` : ""}`} and computed ${status}.`,
     },
     {
-      k: "People decide",
-      t: people === 0 ? "No decision logged on this claim yet" : `${people} decision${people === 1 ? "" : "s"} logged beside the status`,
-      note: "Judgement, with a reason",
+      k: "Human decision",
+      note: "judgement, with a reason",
+      t: people === 0 ? "None logged on this claim yet. When one is, it sits beside the status and never rewrites it." : `${people} decision${people === 1 ? "" : "s"} logged beside the status. It does not rewrite it.`,
     },
   ];
   return (
-    <ol aria-label="How this status was produced" className="grid gap-px overflow-hidden rounded-xl border border-line bg-line md:grid-cols-3">
-      {steps.map((s, i) => (
-        <li key={s.k} className="bg-surface px-5 py-3.5">
-          <p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wide text-muted">
-            <span className="grid h-5 w-5 place-items-center rounded-full bg-ink text-[11px] text-white">{i + 1}</span>
-            {s.k} · {s.note}
-          </p>
-          <p className="mt-1.5 text-[13px] leading-snug text-slate">{s.t}</p>
-        </li>
-      ))}
-    </ol>
+    <details className="group rounded-lg border border-line bg-surface px-4 py-2.5" data-testid="how-determined">
+      <summary className="flex cursor-pointer list-none items-center gap-2 text-[13px] font-semibold text-slate hover:text-ink">
+        <span aria-hidden className="inline-block text-accent transition-transform group-open:rotate-90">▸</span>
+        How was this status determined?
+      </summary>
+      <ol className="mt-3 grid gap-3 border-t border-line-soft pt-3 md:grid-cols-3" aria-label="AI interpretation, deterministic policy, human decision">
+        {steps.map((st, i) => (
+          <li key={st.k} className="text-[13px] leading-snug text-slate">
+            <p className="font-bold text-ink">
+              {i + 1}. {st.k} <span className="font-normal text-muted">· {st.note}</span>
+            </p>
+            <p className="mt-1">{st.t}</p>
+          </li>
+        ))}
+      </ol>
+      <p className="mt-3 text-xs text-muted">AI interprets. Policy computes. People decide. Extraction confidence is never an input to the status.</p>
+    </details>
   );
 }
 
@@ -249,7 +263,7 @@ function EvidenceCard({ e, total, entry, onOpen }: { e: EvidenceView; total: num
 
       <footer className="flex flex-wrap items-center justify-between gap-3 rounded-b-xl border-t border-line-soft bg-accent-soft/60 px-5 py-3">
         {seller ? (
-          <p className="text-xs text-slate">Not extracted by the model: added by a person, so no extraction confidence applies.</p>
+          <p className="text-xs text-slate">Seller-side material is never customer evidence, so no extraction confidence is shown for it.</p>
         ) : (
           <p className="text-xs text-slate" data-testid={`confidence-${e.id}`}>
             <span className="font-bold text-accent">AI extraction confidence {Math.round(e.extractionConfidence * 100)}%</span> · how sure the model is it read this passage correctly
@@ -315,7 +329,7 @@ function ConfidenceCard({ entry }: { entry: ClaimEntry }) {
     <Card className="p-5" as="section">
       <Eyebrow>Extraction confidence · AI, separate from status</Eyebrow>
       {extracted.length === 0 ? (
-        <p className="mt-2 text-sm text-slate">No passage was extracted for this claim, so there is no confidence to show.</p>
+        <p className="mt-2 text-sm text-slate">No customer-side passage was extracted for this claim, so there is no confidence to show.</p>
       ) : (
         <ul className="mt-3 space-y-3">
           {extracted.map((e) => (
@@ -393,7 +407,7 @@ function PeopleDecide({ ledger, entry, role, onAction }: { ledger: DealLedger; e
               I’ll verify with the customer
             </Button>
             <Button onClick={() => onAction("REP_DISPUTE")}>Dispute the reading</Button>
-            <Button onClick={() => onAction("REP_ATTACH")}>Attach evidence</Button>
+            <Button onClick={() => onAction("REP_ATTACH")}>Add seller-supplied context</Button>
             <Button onClick={() => onAction("REP_CRM_FIX")}>I’ll correct the CRM myself</Button>
           </>
         ) : (

@@ -50,7 +50,7 @@ export function QueueScreen({ role }: { role: "MANAGER" | "REP" }) {
             <span className="text-sup">Supported</span>
             <span className="text-uns">Unsupported</span>
             <span className="text-con">Contradicted</span>
-            <span>Review priority</span>
+            <span>Evidence review priority</span>
             <span className="w-36" />
           </div>
           <ol>
@@ -60,6 +60,7 @@ export function QueueScreen({ role }: { role: "MANAGER" | "REP" }) {
           </ol>
           {data.items.length === 0 && <p className="px-5 py-10 text-center text-slate">Nothing is flagged on your deals.</p>}
           <p className="border-t border-line-soft px-5 py-3 text-xs text-muted">
+            <span data-testid="priority-note">Based on evidence status only — not a win probability.</span>{" "}
             {isRep
               ? "Only your own Commit and Best Case deals with an unsupported or contradicted claim are shown."
               : `${data.hiddenCount} Commit / Best Case deal${data.hiddenCount === 1 ? "" : "s"} with every claim supported ${data.hiddenCount === 1 ? "is" : "are"} not shown. Stale claims are shown on each deal but do not queue it on their own.`}
@@ -121,7 +122,7 @@ function QueueRow({ item, first, role }: { item: QueueItem; first: boolean; role
         <Count label="Unsupported" status="UNSUPPORTED" n={counts.UNSUPPORTED} />
         <Count label="Contradicted" status="CONTRADICTED" n={counts.CONTRADICTED} />
       </div>
-      <Cell label="Review priority">
+      <Cell label="Evidence review priority">
         <PriorityChip priority={item.priority} />
       </Cell>
       <div className="order-6 col-span-2 lg:order-none lg:col-span-1 lg:w-36 lg:text-right">

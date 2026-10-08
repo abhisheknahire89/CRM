@@ -13,9 +13,10 @@ Before a forecast call, the ledger shows which important deal claims are **unsup
 ```bash
 npm install
 npm run dev          # http://localhost:3000   (the prototype)
-npm test             # 66 tests: engine, invariants, UI regression, docs ↔ code consistency
+npm test             # 77 tests: engine, invariants, UI regression, docs ↔ code consistency
 npm run build        # static export to ./out, hostable on any static host
-npm run docs:build   # regenerate the diagram and engineering-approach.html from the markdown
+npm run docs:build   # regenerate the diagram and both engineering HTML files from the markdown
+npm run docs:pdf     # print them to PDF (headless Chrome)
 ```
 
 Demo route (the 2–3 minute flow, [`docs/DEMO_SCRIPT.md`](docs/DEMO_SCRIPT.md)): `/` → *Castellan Freight* → *Procurement* → *Log decision* → **Rep** in the top bar.
@@ -36,7 +37,8 @@ Demo route (the 2–3 minute flow, [`docs/DEMO_SCRIPT.md`](docs/DEMO_SCRIPT.md))
 |---|---|
 | Product contract (single source of truth) | [`docs/PRODUCT_CONTRACT.md`](docs/PRODUCT_CONTRACT.md) |
 | Decisions on ambiguities | [`docs/DECISIONS.md`](docs/DECISIONS.md) |
-| **Engineering Approach** | [`docs/ENGINEERING_APPROACH.md`](docs/ENGINEERING_APPROACH.md) · standalone: [`engineering-approach.html`](engineering-approach.html) · print-ready PDF: [`engineering-approach.pdf`](engineering-approach.pdf) |
+| **Engineering Approach, concise (evaluator edition, 6 pages)** | [`docs/ENGINEERING_APPROACH_CONCISE.md`](docs/ENGINEERING_APPROACH_CONCISE.md) · [`engineering-approach-concise.html`](engineering-approach-concise.html) · [`engineering-approach-concise.pdf`](engineering-approach-concise.pdf) |
+| Engineering Approach, detailed appendix | [`docs/ENGINEERING_APPROACH.md`](docs/ENGINEERING_APPROACH.md) · [`engineering-approach.html`](engineering-approach.html) · [`engineering-approach.pdf`](engineering-approach.pdf) |
 | Consistency matrix (PPT ↔ prototype ↔ engineering) | [`docs/CONSISTENCY_MATRIX.md`](docs/CONSISTENCY_MATRIX.md) |
 | Demo script | [`docs/DEMO_SCRIPT.md`](docs/DEMO_SCRIPT.md) |
 
@@ -49,7 +51,7 @@ src/domain/            the product, with no UI and no framework
   aiContract.ts        AiExtraction: the wire format of "AI interprets"
   policies.ts          the illustrative RevOps rules (6 claims, authorities, freshness)
   statusEngine.ts      "Policy computes": deterministic, takes no decision and no confidence
-  priority.ts          queue inclusion and review priority
+  priority.ts          queue inclusion and evidence review priority
 src/data/demoData.ts   synthetic data, written as AI extractions; no precomputed statuses
 src/services/
   evidenceRepository.ts       the interface the UI depends on (the Engineering Approach's API contract)

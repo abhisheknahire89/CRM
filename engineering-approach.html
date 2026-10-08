@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Engineering Approach · Deal Evidence Ledger</title>
+<title>Engineering Approach (detailed appendix) · Deal Evidence Ledger</title>
 <style>
 :root{--canvas:#f7f8fa;--ink:#14213d;--slate:#334155;--muted:#64748b;--line:#d5dae2;--line-soft:#e6e9ef;--accent:#1d4ed8;--accent-soft:#eef3fd;--sup:#2e7d4f;--uns:#8f5500;--con:#b3261e}
 *{box-sizing:border-box}
@@ -43,7 +43,7 @@ footer{margin-top:60px;font-size:12px;color:var(--muted);border-top:1px solid va
 @media (max-width:640px){.page{padding:20px 14px 60px}.masthead{padding:22px 18px}.masthead h1{font-size:26px}table{display:block;overflow-x:auto}}
 @media print{
   @page{size:A4;margin:14mm}
-  body{background:#fff;font-size:10.5px;line-height:1.5}
+  body{background:#fff;font-size:10.5px;line-height:1.45}
   .page{max-width:none;padding:0}
   .masthead{border:0;padding:0;margin-bottom:10px}
   nav.toc{display:none}
@@ -53,7 +53,7 @@ footer{margin-top:60px;font-size:12px;color:var(--muted);border-top:1px solid va
   tr,pre,figure,blockquote{break-inside:avoid}
   table{font-size:9.5px;margin:8px 0 12px}
   th,td{padding:4px 7px}
-  pre{font-size:9px;padding:8px 10px}
+  pre{font-size:8.5px;padding:6px 9px;margin:6px 0;white-space:pre-wrap;overflow:visible;word-break:break-word}
   figure.diagram{padding:6px}
   figure.diagram svg{max-height:225mm;width:auto!important}
   a{color:inherit;text-decoration:none}
@@ -63,7 +63,7 @@ footer{margin-top:60px;font-size:12px;color:var(--muted);border-top:1px solid va
 <body>
 <div class="page">
   <header class="masthead">
-    <p class="eyebrow">Reimagine CRM for the future of sales · deliverable 3 of 3</p>
+    <p class="eyebrow">Reimagine CRM for the future of sales · deliverable 3 of 3 · detailed appendix</p>
     <h1>Engineering Approach: Deal Evidence Ledger</h1>
     <p class="sub">Evidence-native CRM · first product · MVP architecture, team and implementation plan</p>
     <p class="sub">Abhishek Nahire · Product Manager, AI Solutions · written for engineering leadership</p>
@@ -72,7 +72,7 @@ footer{margin-top:60px;font-size:12px;color:var(--muted);border-top:1px solid va
   </header>
   <main>
 <blockquote>
-<p><strong>How to read this.</strong> It describes the same system as the deck and the clickable prototype. The entities, the five statuses and the <strong>AI interprets · Policy computes · People decide</strong> boundary are the ones implemented in <code>src/domain/</code> and defined in <code>docs/PRODUCT_CONTRACT.md</code>. The prototype&#39;s status engine is not a mock-up: it is the code the production policy service would run. Figures marked <strong>[proposed]</strong> or <strong>[assumption]</strong> are for agreement with engineering and a design partner. Nothing here is validated with customers yet, as the deck says.</p>
+<p><strong>How to read this.</strong> This is the detailed appendix to the six-page <code>ENGINEERING_APPROACH_CONCISE.md</code>. It describes the same system as the deck and the clickable prototype. The entities, the five statuses and the <strong>AI interprets · Policy computes · People decide</strong> boundary are the ones implemented in <code>src/domain/</code> and defined in <code>docs/PRODUCT_CONTRACT.md</code>. The prototype&#39;s status engine is not a mock-up: it is the code the production policy service would run. Figures marked <strong>[proposed]</strong> or <strong>[assumption]</strong> are for agreement with engineering and a design partner. Nothing here is validated with customers yet, as the deck says.</p>
 </blockquote>
 <hr>
 <h2 id="1-mvp-and-engineering-principles">1. MVP and engineering principles</h2>
@@ -365,7 +365,7 @@ footer{margin-top:60px;font-size:12px;color:var(--muted);border-top:1px solid va
 </tr>
 <tr>
 <td><strong>Deterministic policy engine</strong></td>
-<td>Claim definitions · authority rules · freshness · precedence · <strong>status computation</strong> · review priority</td>
+<td>Claim definitions · authority rules · freshness · precedence · <strong>status computation</strong> · evidence review priority</td>
 <td>The same TypeScript module as the prototype (<code>statusEngine.ts</code>, <code>priority.ts</code>), run in a worker; re-run on any evidence, rule or CRM change; result persisted with reason and policy version</td>
 <td>Determinism is the product&#39;s trust claim. Same code in demo and production means the demo cannot over-promise</td>
 </tr>
@@ -383,7 +383,7 @@ footer{margin-top:60px;font-size:12px;color:var(--muted);border-top:1px solid va
 </tr>
 <tr>
 <td><strong>Human decisions / audit log</strong></td>
-<td>Manager decisions with reasons; rep disputes, &quot;I&#39;ll verify&quot;, attached evidence; audit of every automated judgment</td>
+<td>Manager decisions with reasons; rep disputes, &quot;I&#39;ll verify&quot;, seller-supplied context; audit of every automated judgment</td>
 <td>Separate append-only tables</td>
 <td>Never joined <em>into</em> status computation; only displayed beside it</td>
 </tr>
@@ -541,7 +541,7 @@ footer{margin-top:60px;font-size:12px;color:var(--muted);border-top:1px solid va
 <tbody><tr>
 <td><strong>Does</strong></td>
 <td>Finds passages · extracts exact quote · identifies speaker · proposes role · maps to a predefined claim · structures dates and durations · flags candidate conflicts · returns extraction confidence</td>
-<td>Admissibility · authority rank · freshness · precedence · <strong>status</strong> · review priority · next question</td>
+<td>Admissibility · authority rank · freshness · precedence · <strong>status</strong> · evidence review priority · next question</td>
 <td>Forecast call · customer contact · adding missing evidence · disputing a reading · changing the CRM · exceptions</td>
 </tr>
 <tr>
@@ -672,7 +672,7 @@ footer{margin-top:60px;font-size:12px;color:var(--muted);border-top:1px solid va
 <tr>
 <td><strong>A channel we cannot see</strong></td>
 <td>A phone call, WhatsApp, in person</td>
-<td>Every status says &quot;<strong>in connected sources</strong>&quot;; channels read are listed per deal; reps can attach evidence, clearly marked <em>seller-supplied</em></td>
+<td>Every status says &quot;<strong>in connected sources</strong>&quot;; channels read are listed per deal; reps can add <strong>seller-supplied context</strong>, clearly marked and never counted as customer evidence</td>
 </tr>
 <tr>
 <td><strong>Quote out of context</strong></td>
@@ -814,7 +814,7 @@ footer{margin-top:60px;font-size:12px;color:var(--muted);border-top:1px solid va
 <tbody><tr>
 <td><strong>0</strong></td>
 <td><strong>Design partner and historical audit.</strong> Read-only access to last quarter. Freeze the <strong>5–8 claim definitions</strong> and the illustrative policy. Create the first manually labelled set</td>
-<td><strong>Gate 0 (value):</strong> lost and slipped deals carry more unsupported or contradicted claims than won ones. <strong>If not, stop</strong></td>
+<td><strong>Gate 0 (value):</strong> lost and slipped deals carry more unsupported or contradicted claims than won ones. <strong>If not, stop.</strong> <em>This tests whether evidence quality separates outcomes enough to justify a live pilot. It does not establish causality.</em></td>
 </tr>
 <tr>
 <td><strong>1–2</strong></td>
@@ -863,14 +863,14 @@ footer{margin-top:60px;font-size:12px;color:var(--muted);border-top:1px solid va
 <tbody><tr>
 <td>1</td>
 <td><strong>Wrong speaker or role</strong> produces a false status</td>
-<td>Role shown as <em>proposed by AI</em> on every card; one-step dispute; role accuracy in the gold set; policy requires an accepted-authority role</td>
+<td>Start with claims where authority is relatively explicit, expose the inferred role, allow one-step correction, measure role accuracy separately, and narrow the claim set if reliability is inadequate. (Also: role shown as <em>proposed by AI</em> on every card; policy requires an accepted-authority role.)</td>
 <td>Role accuracy; disputes citing &quot;wrong speaker or role&quot;</td>
 </tr>
 <tr>
 <td>2</td>
 <td><strong>Missing communication channels</strong> (phone, chat, in person) cause false &quot;unsupported&quot;</td>
-<td>Wording is always &quot;in connected sources&quot;; channels read shown per deal; rep can attach evidence marked <em>seller-supplied</em></td>
-<td>Share of disputes that cite an unseen channel; attach rate</td>
+<td>Wording is always &quot;in connected sources&quot;; channels read shown per deal; rep can add <em>seller-supplied context</em></td>
+<td>Share of disputes that cite an unseen channel; rate of seller-supplied context</td>
 </tr>
 <tr>
 <td>3</td>
@@ -905,7 +905,7 @@ footer{margin-top:60px;font-size:12px;color:var(--muted);border-top:1px solid va
 <tr>
 <td>8</td>
 <td><strong>Evidence quality may not correlate with forecast outcomes</strong></td>
-<td>This is the <strong>first test</strong>, before the live build; judged point-in-time. If the signal does not separate outcomes, we stop</td>
+<td>This is the <strong>first test</strong>, before the live build; judged point-in-time. If the signal does not separate outcomes, we stop. It tests whether evidence quality separates outcomes enough to justify a live pilot; it does not establish causality</td>
 <td>Unsupported/contradicted rate on won vs lost vs slipped deals</td>
 </tr>
 </tbody></table>

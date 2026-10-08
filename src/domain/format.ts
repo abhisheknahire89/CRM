@@ -88,7 +88,7 @@ export const SOURCE_TYPE_LABEL: Record<EvidenceSourceType, string> = {
   CUSTOMER_EMAIL: "Customer email",
   CALL_TRANSCRIPT: "Call recording",
   CRM_NOTE: "Rep note in CRM",
-  SELLER_ATTACHMENT: "Seller-attached",
+  SELLER_ATTACHMENT: "Seller-supplied context",
 };
 
 export const STATUS_LABEL: Record<ComputedStatus, string> = {

@@ -93,6 +93,8 @@ export interface StatusExplanation {
   reasonCode: StatusReasonCode;
   /** Plain-language reason shown on cards and in the detail view. */
   reason: string;
+  /** The same reason in one short line, for the top of the evidence detail. */
+  headline: string;
   /** The admissible evidence the status turns on (if any). */
   controllingEvidenceId: string | null;
   supportingEvidenceIds: string[];

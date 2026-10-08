@@ -1,0 +1,516 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Engineering Approach · Deal Evidence Ledger</title>
+<style>
+:root{--canvas:#f7f8fa;--ink:#14213d;--slate:#334155;--muted:#64748b;--line:#d5dae2;--line-soft:#e6e9ef;--accent:#1d4ed8;--accent-soft:#eef3fd;--sup:#2e7d4f;--uns:#8f5500;--con:#b3261e}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--canvas);color:var(--ink);font:16px/1.6 Arial,"Helvetica Neue",Helvetica,sans-serif}
+.page{max-width:980px;margin:0 auto;padding:40px 28px 80px}
+.masthead{background:#fff;border:1px solid var(--line);border-radius:14px;padding:32px 36px;margin-bottom:28px}
+.eyebrow{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+.masthead h1{font-size:34px;line-height:1.15;margin:0 0 6px;letter-spacing:-.01em}
+.masthead .sub{color:var(--slate);margin:0}
+.principle{margin-top:18px;font-weight:700;letter-spacing:.02em}
+nav.toc{margin-top:22px;border-top:1px solid var(--line-soft);padding-top:16px}
+nav.toc ol{margin:0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:6px 24px;counter-reset:s}
+nav.toc li{font-size:14px}
+nav.toc a{color:var(--accent);text-decoration:none}
+nav.toc a:hover{text-decoration:underline}
+main h2{font-size:26px;margin:56px 0 14px;padding-top:8px;letter-spacing:-.005em;scroll-margin-top:16px}
+main h3{font-size:18px;margin:30px 0 8px}
+main p{margin:0 0 14px}
+main ul,main ol{padding-left:22px;margin:0 0 14px}
+main li{margin:4px 0}
+main hr{border:0;border-top:1px solid var(--line);margin:40px 0 0}
+a{color:var(--accent)}
+blockquote{margin:18px 0;padding:14px 18px;background:var(--accent-soft);border:1px solid #c9d8f7;border-radius:10px;color:var(--slate)}
+blockquote p:last-child{margin-bottom:0}
+table{width:100%;border-collapse:collapse;margin:14px 0 22px;font-size:14px;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+th,td{text-align:left;vertical-align:top;padding:9px 12px;border-bottom:1px solid var(--line-soft)}
+th{background:var(--canvas);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+tr:last-child td{border-bottom:0}
+td:first-child{font-weight:600}
+code{font:12.5px ui-monospace,SFMono-Regular,Menlo,monospace;background:#eef0f4;padding:1px 5px;border-radius:4px}
+pre{background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow:auto;font-size:12.5px;line-height:1.5}
+pre code{background:none;padding:0}
+figure.diagram{margin:20px 0 26px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px}
+figure.diagram figcaption{font-size:13px;color:var(--muted);text-align:center;margin-top:8px}
+footer{margin-top:60px;font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px}
+@media (max-width:640px){.page{padding:20px 14px 60px}.masthead{padding:22px 18px}.masthead h1{font-size:26px}table{display:block;overflow-x:auto}}
+@media print{
+  @page{size:A4;margin:14mm}
+  body{background:#fff;font-size:10px;line-height:1.45}
+  .page{max-width:none;padding:0}
+  .masthead{border:0;padding:0;margin-bottom:10px}
+  nav.toc{display:none}
+  main h2{margin:22px 0 8px;font-size:19px;break-after:avoid}
+  main h3{break-after:avoid;margin:16px 0 6px;font-size:14px}
+  main h2{break-before:page;margin-top:0}main h2:first-of-type{break-before:auto;margin-top:14px}main hr{display:none}
+  tr,pre,figure,blockquote{break-inside:avoid}
+  table{font-size:9.5px;margin:8px 0 12px}
+  th,td{padding:4px 7px}
+  pre{font-size:8.5px;padding:6px 9px;margin:6px 0;white-space:pre-wrap;overflow:visible;word-break:break-word}
+  figure.diagram{padding:6px}
+  figure.diagram svg{max-height:205mm;width:auto!important}
+  a{color:inherit;text-decoration:none}
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="masthead">
+    <p class="eyebrow">Reimagine CRM for the future of sales · deliverable 3 of 3 · evaluator edition (6 pages)</p>
+    <h1>Engineering Approach: Deal Evidence Ledger</h1>
+    <p class="sub">Evidence-native CRM · first product · MVP architecture, team and implementation plan</p>
+    <p class="sub">Abhishek Nahire · Product Manager, AI Solutions · written for engineering leadership</p>
+    <p class="principle">AI interprets. Policy computes. People decide.</p>
+    <nav class="toc" aria-label="Contents"><ol><li><a href="#1-mvp-and-engineering-principles">1. MVP and engineering principles</a></li><li><a href="#2-system-architecture">2. System architecture</a></li><li><a href="#3-the-ai-policy-human-boundary-using-castellan">3. The AI / policy / human boundary, using Castellan</a></li><li><a href="#4-ai-quality-evaluation-and-failure-handling">4. AI quality, evaluation and failure handling</a></li><li><a href="#5-security-privacy-and-enterprise-readiness">5. Security, privacy and enterprise readiness</a></li><li><a href="#6-team-implementation-plan-stage-gates-and-top-risks">6. Team, implementation plan, stage gates and top risks</a></li></ol></nav>
+  </header>
+  <main>
+<blockquote>
+<p>Six pages for a quick read. The detailed appendix is <code>ENGINEERING_APPROACH.md</code> (same system, same entities, more depth). Figures marked <strong>[proposed]</strong> are for agreement with engineering and a design partner; nothing is validated with customers yet.</p>
+</blockquote>
+<hr>
+<h2 id="1-mvp-and-engineering-principles">1. MVP and engineering principles</h2>
+<p><strong>Goal.</strong> Before a forecast call, identify the important deal claims that are <strong>unsupported, contradicted or stale</strong>, with the <strong>exact evidence</strong> for each. Today a CRM stores <code>FIELD = VALUE</code>; this product stores <code>CLAIM + EVIDENCE + SOURCE + TIME + HISTORY + STATUS</code>, and fields become views of it.</p>
+<p><strong>The principle: AI interprets. Policy computes. People decide.</strong> Policy computes five statuses: <strong>SUPPORTED · UNSUPPORTED · CONTRADICTED · STALE · UNKNOWN</strong>. A human decision is stored beside the status and never rewrites it.</p>
+<p><strong>Users.</strong> Front-line <strong>sales manager</strong> (primary) · <strong>account executive</strong> (secondary) · <strong>CRO / VP Sales</strong> (economic buyer) · <strong>RevOps</strong> (operational champion). Workflow: the <strong>weekly forecast review</strong>.</p>
+<p><strong>V1 is read-only with respect to the external CRM.</strong></p>
+<table>
+<thead>
+<tr>
+<th>IN</th>
+<th>NOT YET (future possibilities only)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Salesforce <em>or</em> HubSpot · email + calendar · <strong>one</strong> call recorder</td>
+<td>CRM replacement · generic AI chat or agent</td>
+</tr>
+<tr>
+<td><strong>Commit</strong> and <strong>Best Case</strong> deals · <strong>5–8 predefined claims</strong></td>
+<td>Win/loss prediction · autonomous forecasting</td>
+</tr>
+<tr>
+<td>Exact quote, speaker, role, time, source link, status, reason, history</td>
+<td>Autonomous emails · AI SDR · any customer contact</td>
+</tr>
+<tr>
+<td><strong>Rep sees flags before the manager</strong></td>
+<td>WhatsApp / chat · buyer portal · relationship graph · renewals</td>
+</tr>
+<tr>
+<td>Human decision log, stored separately</td>
+<td>Custom rules builder · autonomous CRM write-back</td>
+</tr>
+</tbody></table>
+<p><strong>Must prove</strong> (proposed thresholds, <strong>not industry benchmarks</strong>): <strong>≥ 90 %</strong> of evidence citations correct and relevant · <strong>&gt; 50 %</strong> of flags judged worth raising by managers · guardrail: reps do not reject it or record less.</p>
+<p><strong>Engineering principles.</strong> (1) <strong>Read-only before write-back.</strong> (2) <strong>Evidence must always be inspectable.</strong> (3) <strong>AI proposes interpretation; deterministic policy computes status.</strong> (4) <strong>Human decisions remain separate from evidence status.</strong> (5) <strong>Precision before recall.</strong> (6) <strong>Every automated judgment must be auditable.</strong> (7) <strong>Tenant isolation and least-privilege access from day one.</strong></p>
+<hr>
+<h2 id="2-system-architecture">2. System architecture</h2>
+<figure class="diagram"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1060 1088" width="100%" style="max-width:860px;display:block;margin:0 auto" role="img" aria-labelledby="t d" font-family="Arial, Helvetica, sans-serif">
+<title id="t">Production architecture of the Deal Evidence Ledger</title>
+<desc id="d">Nine layers from read-only data sources through connectors, normalisation, AI evidence extraction, evidence store, deterministic policy engine, application API, ledger UI, to human decisions and the audit log. AI interprets, policy computes, people decide.</desc>
+<defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#64748b"/></marker></defs>
+<rect width="1060" height="1088" fill="#ffffff"/>
+<text x="28" y="34" font-size="13" font-weight="700" fill="#14213d">PRODUCTION ARCHITECTURE · V1 · READ-ONLY WITH RESPECT TO THE EXTERNAL CRM</text>
+<rect x="16" y="64" width="1028" height="84" rx="10" fill="#ffffff" stroke="#d5dae2" stroke-width="1.2"/>
+<circle cx="36" cy="90" r="11" fill="#14213d"/><text x="36" y="94.5" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">1</text>
+<text x="54" y="94" font-size="12.5" font-weight="700" fill="#14213d">DATA SOURCES</text>
+<text x="54" y="112" font-size="11" fill="#64748b">read-only access</text>
+<rect x="272" y="76" width="201" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="283" y="91.5" font-size="12" fill="#334155">Salesforce / HubSpot (one)</text>
+<rect x="480.75" y="76" width="125" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="491.75" y="91.5" font-size="12" fill="#334155">Gmail / Outlook</text>
+<rect x="613.875" y="76" width="77" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="624.875" y="91.5" font-size="12" fill="#334155">Calendar</text>
+<rect x="698.875" y="76" width="153" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="709.875" y="91.5" font-size="12" fill="#334155">Call recorder (one)</text>
+<line x1="392" y1="151" x2="392" y2="172" stroke="#64748b" stroke-width="1.6" marker-end="url(#ah)"/>
+<text x="406" y="166.0" font-size="11" fill="#64748b">OAuth · read-only</text>
+<rect x="16" y="176" width="1028" height="84" rx="10" fill="#ffffff" stroke="#d5dae2" stroke-width="1.2"/>
+<circle cx="36" cy="202" r="11" fill="#14213d"/><text x="36" y="206.5" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">2</text>
+<text x="54" y="206" font-size="12.5" font-weight="700" fill="#14213d">CONNECTORS</text>
+<text x="54" y="224" font-size="11" fill="#64748b">ingestion; least-privilege OAuth</text>
+<rect x="272" y="188" width="187" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="283" y="203.5" font-size="12" fill="#334155">OAuth + read-only scopes</text>
+<rect x="467.0" y="188" width="201" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="478.0" y="203.5" font-size="12" fill="#334155">Incremental sync (cursors)</text>
+<rect x="675.75" y="188" width="187" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="686.75" y="203.5" font-size="12" fill="#334155">Webhooks where supported</text>
+<rect x="870.75" y="188" width="153" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="881.75" y="203.5" font-size="12" fill="#334155">Job queue + retries</text>
+<line x1="392" y1="263" x2="392" y2="284" stroke="#64748b" stroke-width="1.6" marker-end="url(#ah)"/>
+<text x="406" y="278.0" font-size="11" fill="#64748b">raw payloads</text>
+<rect x="16" y="288" width="1028" height="84" rx="10" fill="#ffffff" stroke="#d5dae2" stroke-width="1.2"/>
+<circle cx="36" cy="314" r="11" fill="#14213d"/><text x="36" y="318.5" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">3</text>
+<text x="54" y="318" font-size="12.5" font-weight="700" fill="#14213d">NORMALISATION</text>
+<text x="54" y="336" font-size="11" fill="#64748b">one shape for every source</text>
+<rect x="272" y="300" width="77" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="283" y="315.5" font-size="12" fill="#334155">Messages</text>
+<rect x="357.0" y="300" width="56" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="368.0" y="315.5" font-size="12" fill="#334155">Calls</text>
+<rect x="421.375" y="300" width="63" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="432.375" y="315.5" font-size="12" fill="#334155">Events</text>
+<rect x="492.625" y="300" width="63" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="503.625" y="315.5" font-size="12" fill="#334155">People</text>
+<rect x="563.875" y="300" width="77" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="574.875" y="315.5" font-size="12" fill="#334155">Accounts</text>
+<rect x="648.875" y="300" width="56" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="659.875" y="315.5" font-size="12" fill="#334155">Deals</text>
+<rect x="713.25" y="300" width="221" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="724.25" y="315.5" font-size="12" fill="#334155">Source metadata + permissions</text>
+<line x1="392" y1="375" x2="392" y2="396" stroke="#64748b" stroke-width="1.6" marker-end="url(#ah)"/>
+<text x="406" y="390.0" font-size="11" fill="#64748b">candidate passages · Commit / Best Case deals only</text>
+<rect x="16" y="400" width="1028" height="84" rx="10" fill="#eef3fd" stroke="#1d4ed8" stroke-width="2"/>
+<circle cx="36" cy="426" r="11" fill="#14213d"/><text x="36" y="430.5" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">4</text>
+<text x="54" y="430" font-size="12.5" font-weight="700" fill="#14213d">EVIDENCE EXTRACTION</text>
+<text x="54" y="448" font-size="11" fill="#64748b">structured output, not prose</text>
+<rect x="54" y="456" width="110" height="19" rx="9.5" fill="#1d4ed8"/>
+<text x="109" y="469" text-anchor="middle" font-size="10.5" font-weight="700" fill="#fff">AI INTERPRETS</text>
+<rect x="272" y="412" width="125" height="23" rx="6" fill="#fff" stroke="#1d4ed8" stroke-opacity="0.55" stroke-width="1"/>
+<text x="283" y="427.5" font-size="12" fill="#334155">Claim candidate</text>
+<rect x="405.125" y="412" width="146" height="23" rx="6" fill="#fff" stroke="#1d4ed8" stroke-opacity="0.55" stroke-width="1"/>
+<text x="416.125" y="427.5" font-size="12" fill="#334155">Exact quote / span</text>
+<rect x="558.875" y="412" width="70" height="23" rx="6" fill="#fff" stroke="#1d4ed8" stroke-opacity="0.55" stroke-width="1"/>
+<text x="569.875" y="427.5" font-size="12" fill="#334155">Speaker</text>
+<rect x="637.0" y="412" width="173" height="23" rx="6" fill="#fff" stroke="#1d4ed8" stroke-opacity="0.55" stroke-width="1"/>
+<text x="648.0" y="427.5" font-size="12" fill="#334155">Speaker-role candidate</text>
+<rect x="818.25" y="412" width="84" height="23" rx="6" fill="#fff" stroke="#1d4ed8" stroke-opacity="0.55" stroke-width="1"/>
+<text x="829.25" y="427.5" font-size="12" fill="#334155">Timestamp</text>
+<rect x="910.125" y="412" width="98" height="23" rx="6" fill="#fff" stroke="#1d4ed8" stroke-opacity="0.55" stroke-width="1"/>
+<text x="921.125" y="427.5" font-size="12" fill="#334155">Source link</text>
+<rect x="272" y="440" width="166" height="23" rx="6" fill="#fff" stroke="#1d4ed8" stroke-opacity="0.55" stroke-width="1"/>
+<text x="283" y="455.5" font-size="12" fill="#334155">Extraction confidence</text>
+<rect x="446.375" y="440" width="180" height="23" rx="6" fill="#fff" stroke="#1d4ed8" stroke-opacity="0.55" stroke-width="1"/>
+<text x="457.375" y="455.5" font-size="12" fill="#334155">Candidate contradiction</text>
+<line x1="392" y1="487" x2="392" y2="508" stroke="#64748b" stroke-width="1.6" marker-end="url(#ah)"/>
+<text x="406" y="502.0" font-size="11" fill="#64748b">evidence + extraction confidence · quote verified verbatim</text>
+<rect x="16" y="512" width="1028" height="84" rx="10" fill="#ffffff" stroke="#d5dae2" stroke-width="1.2"/>
+<circle cx="36" cy="538" r="11" fill="#14213d"/><text x="36" y="542.5" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">5</text>
+<text x="54" y="542" font-size="12.5" font-weight="700" fill="#14213d">EVIDENCE STORE</text>
+<text x="54" y="560" font-size="11" fill="#64748b">Postgres + object store</text>
+<rect x="272" y="524" width="160" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="283" y="539.5" font-size="12" fill="#334155">Raw source reference</text>
+<rect x="439.5" y="524" width="153" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="450.5" y="539.5" font-size="12" fill="#334155">Normalised evidence</text>
+<rect x="600.125" y="524" width="153" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="611.125" y="539.5" font-size="12" fill="#334155">Append-only history</text>
+<rect x="760.75" y="524" width="208" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="771.75" y="539.5" font-size="12" fill="#334155">Verbatim-quote check passed</text>
+<line x1="392" y1="599" x2="392" y2="620" stroke="#64748b" stroke-width="1.6" marker-end="url(#ah)"/>
+<text x="406" y="614.0" font-size="11" fill="#64748b">evidence + history</text>
+<rect x="16" y="624" width="1028" height="84" rx="10" fill="#ffffff" stroke="#14213d" stroke-width="2"/>
+<circle cx="36" cy="650" r="11" fill="#14213d"/><text x="36" y="654.5" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">6</text>
+<text x="54" y="654" font-size="12.5" font-weight="700" fill="#14213d">POLICY ENGINE</text>
+<text x="54" y="672" font-size="11" fill="#64748b">deterministic; same code as the prototype</text>
+<rect x="54" y="680" width="124" height="19" rx="9.5" fill="#14213d"/>
+<text x="116" y="693" text-anchor="middle" font-size="10.5" font-weight="700" fill="#fff">POLICY COMPUTES</text>
+<rect x="272" y="636" width="139" height="23" rx="6" fill="#fff" stroke="#14213d" stroke-opacity="0.55" stroke-width="1"/>
+<text x="283" y="651.5" font-size="12" fill="#334155">Claim definitions</text>
+<rect x="418.875" y="636" width="125" height="23" rx="6" fill="#fff" stroke="#14213d" stroke-opacity="0.55" stroke-width="1"/>
+<text x="429.875" y="651.5" font-size="12" fill="#334155">Authority rules</text>
+<rect x="552.0" y="636" width="84" height="23" rx="6" fill="#fff" stroke="#14213d" stroke-opacity="0.55" stroke-width="1"/>
+<text x="563.0" y="651.5" font-size="12" fill="#334155">Freshness</text>
+<rect x="643.875" y="636" width="91" height="23" rx="6" fill="#fff" stroke="#14213d" stroke-opacity="0.55" stroke-width="1"/>
+<text x="654.875" y="651.5" font-size="12" fill="#334155">Precedence</text>
+<rect x="272" y="664" width="462" height="23" rx="6" fill="#fff" stroke="#14213d" stroke-opacity="0.55" stroke-width="1"/>
+<text x="283" y="679.5" font-size="12" fill="#334155">Status: Supported · Unsupported · Contradicted · Stale · Unknown</text>
+<line x1="392" y1="711" x2="392" y2="732" stroke="#64748b" stroke-width="1.6" marker-end="url(#ah)"/>
+<text x="406" y="726.0" font-size="11" fill="#64748b">computed status + reason</text>
+<rect x="16" y="736" width="1028" height="84" rx="10" fill="#ffffff" stroke="#d5dae2" stroke-width="1.2"/>
+<circle cx="36" cy="762" r="11" fill="#14213d"/><text x="36" y="766.5" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">7</text>
+<text x="54" y="766" font-size="12.5" font-weight="700" fill="#14213d">APPLICATION API</text>
+<text x="54" y="784" font-size="11" fill="#64748b">every request checked</text>
+<rect x="272" y="748" width="146" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="283" y="763.5" font-size="12" fill="#334155">SSO + tenant scope</text>
+<rect x="425.75" y="748" width="50" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="436.75" y="763.5" font-size="12" fill="#334155">RBAC</text>
+<rect x="483.25" y="748" width="180" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="494.25" y="763.5" font-size="12" fill="#334155">Source-permission check</text>
+<rect x="671.375" y="748" width="208" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="682.375" y="763.5" font-size="12" fill="#334155">EvidenceRepository contract</text>
+<line x1="392" y1="823" x2="392" y2="844" stroke="#64748b" stroke-width="1.6" marker-end="url(#ah)"/>
+<text x="406" y="838.0" font-size="11" fill="#64748b">ledger views</text>
+<rect x="16" y="848" width="1028" height="84" rx="10" fill="#ffffff" stroke="#d5dae2" stroke-width="1.2"/>
+<circle cx="36" cy="874" r="11" fill="#14213d"/><text x="36" y="878.5" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">8</text>
+<text x="54" y="878" font-size="12.5" font-weight="700" fill="#14213d">LEDGER UI</text>
+<text x="54" y="896" font-size="11" fill="#64748b">Deal Evidence Ledger web app</text>
+<rect x="272" y="860" width="118" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="283" y="875.5" font-size="12" fill="#334155">Evidence queue</text>
+<rect x="398.25" y="860" width="98" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="409.25" y="875.5" font-size="12" fill="#334155">Deal ledger</text>
+<rect x="503.875" y="860" width="235" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="514.875" y="875.5" font-size="12" fill="#334155">Evidence detail + source viewer</text>
+<rect x="747.0" y="860" width="118" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="758.0" y="875.5" font-size="12" fill="#334155">Rep-first view</text>
+<rect x="873.25" y="860" width="111" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="884.25" y="875.5" font-size="12" fill="#334155">RevOps policy</text>
+<line x1="392" y1="935" x2="392" y2="956" stroke="#64748b" stroke-width="1.6" marker-end="url(#ah)"/>
+<text x="406" y="950.0" font-size="11" fill="#64748b">decisions + disputes · never an input to layer 6</text>
+<rect x="16" y="960" width="1028" height="84" rx="10" fill="#f7f8fa" stroke="#334155" stroke-width="1.2" stroke-dasharray="6 4"/>
+<circle cx="36" cy="986" r="11" fill="#14213d"/><text x="36" y="990.5" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">9</text>
+<text x="54" y="990" font-size="12.5" font-weight="700" fill="#14213d">DECISIONS + AUDIT LOG</text>
+<text x="54" y="1008" font-size="11" fill="#64748b">human; stored apart from status</text>
+<rect x="54" y="1016" width="110" height="19" rx="9.5" fill="#334155"/>
+<text x="109" y="1029" text-anchor="middle" font-size="10.5" font-weight="700" fill="#fff">PEOPLE DECIDE</text>
+<rect x="272" y="972" width="194" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="283" y="987.5" font-size="12" fill="#334155">Manager decision + reason</text>
+<rect x="473.875" y="972" width="221" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="484.875" y="987.5" font-size="12" fill="#334155">Rep dispute / verify / attach</text>
+<rect x="703.25" y="972" width="290" height="23" rx="6" fill="#fff" stroke="#d5dae2" stroke-opacity="0.55" stroke-width="1"/>
+<text x="714.25" y="987.5" font-size="12" fill="#334155">Audit trail of every automated judgment</text>
+<text x="752" y="153" font-size="0" fill="none"></text>
+<text x="28" y="1072" font-size="12" font-weight="700" fill="#14213d">No write-back to the CRM. No customer contact. A human decision never enters layer 6.</text>
+</svg><figcaption>Production architecture. Layers 4, 6 and 9 are where AI interprets, policy computes and people decide.</figcaption></figure>
+<p><strong>Simplest architecture that carries a pilot:</strong> a modular monolith (API, connector, extraction and policy workers), <strong>one Postgres</strong>, one object store, one job queue, and a hosted LLM behind a thin gateway. <strong>Not built:</strong> vector DB, graph DB, Kafka, microservices, agent framework; none is needed for V1, and each has a stated trigger in the appendix. The prototype&#39;s <code>EvidenceRepository</code> is the Application API contract, and its status engine is the code the policy worker would run.</p>
+<hr>
+<h2 id="3-the-ai-policy-human-boundary-using-castellan">3. The AI / policy / human boundary, using Castellan</h2>
+<table>
+<thead>
+<tr>
+<th>AI interprets (probabilistic)</th>
+<th>Policy computes (deterministic)</th>
+<th>People decide</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Finds passages · exact quote · speaker · <strong>proposed</strong> role · maps to a predefined claim · structures dates and durations · flags candidate conflicts · <strong>extraction confidence</strong></td>
+<td>Admissibility · authority rank · freshness · precedence · <strong>status</strong> · evidence review priority · next question</td>
+<td>Forecast call · customer contact · missing evidence · disputing a reading · changing the CRM</td>
+</tr>
+<tr>
+<td><strong>Never:</strong> decides status, predicts win/loss, contacts customers</td>
+<td><strong>Never:</strong> reads a model score or a human decision</td>
+<td><strong>Never:</strong> rewrites a computed status</td>
+</tr>
+</tbody></table>
+<p><strong>Castellan Freight, <em>Procurement takes two weeks</em> (CRM says 2 weeks).</strong> The champion said &quot;about two weeks&quot; on a 22 Sep call. Procurement wrote four weeks on 2 Oct. <strong>① AI output</strong> for the email (the prototype&#39;s exact wire format; the champion passage is the same shape, <code>0.99</code>, <code>CHAMPION</code>, value <code>2</code>):</p>
+<pre><code class="language-json">{
+  &quot;extraction_id&quot;: &quot;ex-cf-proc-email&quot;,
+  &quot;deal_id&quot;: &quot;castellan-freight&quot;,
+  &quot;claim_definition&quot;: &quot;PROCUREMENT_DURATION&quot;,
+  &quot;source_id&quot;: &quot;src-ex-cf-proc-email&quot;,
+  &quot;source_type&quot;: &quot;CUSTOMER_EMAIL&quot;,
+  &quot;quote&quot;: &quot;Our standard procurement review is four weeks after receipt of the complete document set.&quot;,
+  &quot;speaker&quot;: &quot;Hannah Brandt&quot;,
+  &quot;speaker_role_candidate&quot;: &quot;PROCUREMENT&quot;,
+  &quot;timestamp&quot;: &quot;2026-10-02T10:14:00Z&quot;,
+  &quot;structured_value&quot;: 4,
+  &quot;extraction_confidence&quot;: 0.96,
+  &quot;candidate_conflicts&quot;: [&quot;ex-cf-proc-champion&quot;],
+  &quot;model_version&quot;: &quot;extractor-demo-0.1&quot;,
+  &quot;prompt_version&quot;: &quot;claims-v0.1&quot;
+}
+</code></pre>
+<p><strong>② Deterministic rule:</strong> accepted authority <strong>Procurement › Legal</strong>; fresh for <strong>30 days</strong>; <strong>later or more authoritative evidence wins</strong>. The champion is not an accepted authority, so that passage is context. <strong>③ Policy output</strong> (real prototype output):</p>
+<pre><code class="language-json">{
+  &quot;status&quot;: &quot;CONTRADICTED&quot;,
+  &quot;reasonCode&quot;: &quot;CONTRADICTED_LATER_OR_HIGHER_AUTHORITY&quot;,
+  &quot;reason&quot;: &quot;Later, more authoritative procurement evidence disagrees: Hannah Brandt (Procurement) states 4 weeks on 2 Oct; the CRM says 2 weeks. Earlier: Marcus Lindqvist (Champion) said 2 weeks on 22 Sep.&quot;,
+  &quot;controllingEvidenceId&quot;: &quot;ex-cf-proc-email&quot;,
+  &quot;supersededEvidenceIds&quot;: [&quot;ex-cf-proc-champion&quot;]
+}
+</code></pre>
+<p><strong>④ People decide:</strong> the manager logs <em>Keep Forecast = Commit</em> with a reason. The status stays <strong>CONTRADICTED</strong>.</p>
+<blockquote>
+<p><strong>LLM confidence does not determine status.</strong> The model was 99 % sure the champion said it. That describes <em>extraction</em>. The claim is CONTRADICTED because policy found later, more authoritative evidence. A test changes the confidence to 0.01 or 0.99 and the status does not move.</p>
+</blockquote>
+<hr>
+<h2 id="4-ai-quality-evaluation-and-failure-handling">4. AI quality, evaluation and failure handling</h2>
+<p><strong>Offline evaluation.</strong> <strong>50 closed deals × about 8 claims ≈ 400 claim evaluations</strong>, labelled by hand by two labellers with adjudication, <strong>point-in-time</strong> (judged as at that week&#39;s forecast review, not at close). Dev/test split with a locked test set. Hard cases oversampled: hedged language, conditionals, forwarded threads, multi-speaker calls.</p>
+<table>
+<thead>
+<tr>
+<th>Level</th>
+<th>Metrics, reported separately</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Extraction</strong></td>
+<td>Quote/span precision · speaker accuracy · claim-mapping accuracy · <strong>role accuracy</strong></td>
+</tr>
+<tr>
+<td><strong>Product output</strong></td>
+<td>Evidence citation judged relevant and correct · status agreement with a human evaluation under the same policy · flags managers judge worth raising</td>
+</tr>
+</tbody></table>
+<p><strong>Threshold [proposed product threshold, not an industry benchmark]: ≥ 90 % citation correctness and relevance.</strong> At ~400 evaluations that is about ±3 points overall (±8 within one claim type), so we judge the threshold overall and treat per-claim numbers as directional. <strong>Tune for precision before recall.</strong> If the bar is missed, narrow the claim set first.</p>
+<table>
+<thead>
+<tr>
+<th>Failure</th>
+<th>Safeguard</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Wrong speaker or role</td>
+<td>Role shown as <em>proposed by AI</em> on every card; one-step dispute; role accuracy tracked</td>
+</tr>
+<tr>
+<td>Hedged remark read as a commitment</td>
+<td>Verbatim quote always shown and linked; only accepted-authority customer evidence counts</td>
+</tr>
+<tr>
+<td>Channel the system cannot see</td>
+<td>&quot;In connected sources&quot; wording; channels shown per deal; rep can add <strong>seller-supplied context</strong></td>
+</tr>
+<tr>
+<td>Quote out of context</td>
+<td>Source viewer shows the surrounding passage; conditionals are in the gold set</td>
+</tr>
+<tr>
+<td>Prompt or model change shifts results</td>
+<td>Hand-marked set <strong>re-runs on every model, prompt or policy change</strong>; a drop blocks release</td>
+</tr>
+<tr>
+<td>Prompt injection in a source</td>
+<td>Source text is untrusted data; extractor has no tools; schema and verbatim-quote checks</td>
+</tr>
+</tbody></table>
+<p><strong>Bounded blast radius:</strong> a mistake changes <strong>no CRM record</strong> and reaches <strong>no customer</strong>; the rep can dispute it before the manager sees it.</p>
+<hr>
+<h2 id="5-security-privacy-and-enterprise-readiness">5. Security, privacy and enterprise readiness</h2>
+<table>
+<thead>
+<tr>
+<th>Area</th>
+<th>Approach</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Access</strong></td>
+<td>OAuth per source; <strong>minimum scopes, read-only for the CRM</strong>; tokens in a secrets manager with per-tenant envelope encryption; customer admin can revoke at any time</td>
+</tr>
+<tr>
+<td><strong>Tenant isolation</strong></td>
+<td><code>tenant_id</code> on every row with Postgres row-level security; per-tenant keys; cross-tenant tests in CI</td>
+</tr>
+<tr>
+<td><strong>RBAC</strong></td>
+<td>Manager sees their reporting line, rep sees their own deals, RevOps sees policy and aggregates, not individual rep performance</td>
+</tr>
+<tr>
+<td><strong>Source-level permissions</strong></td>
+<td><strong>A manager is never shown evidence they could not open under company policy.</strong> Access metadata is ingested with each source and checked on every evidence read; <strong>default-deny</strong> when access cannot be established</td>
+</tr>
+<tr>
+<td><strong>Consent and recording policy</strong></td>
+<td>Only what the company&#39;s recorder already records under its own consent settings; we never start recording; private or excluded calls are not ingested</td>
+</tr>
+<tr>
+<td><strong>Encryption, retention, deletion</strong></td>
+<td>TLS in transit, encryption at rest; we store the quote, a short context window and a pointer, and fetch full text from the source with the viewer&#39;s own permission; configurable retention; deletion cascades by source and tenant</td>
+</tr>
+<tr>
+<td><strong>Audit</strong></td>
+<td>Append-only log of every automated judgment (model, prompt, policy version), evidence view, human decision and policy change</td>
+</tr>
+<tr>
+<td><strong>LLM handling</strong></td>
+<td>Zero-retention, no-training terms; provider gateway; region pinning if required</td>
+</tr>
+<tr>
+<td><strong>Platform dependency</strong></td>
+<td>Email, call and CRM APIs can change, be rate-limited or be closed to third parties. Each source sits behind an adapter with contract tests; &quot;sync degraded&quot; is shown, never silently stale; V1 depends on <strong>one CRM and one recorder</strong> by choice</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="6-team-implementation-plan-stage-gates-and-top-risks">6. Team, implementation plan, stage gates and top risks</h2>
+<p><strong>Team (lean): 1 Product Manager</strong> (claim set, evaluation design, gates) · <strong>1 Product Designer</strong> (review experience, rep-first flow) · <strong>2 Full-stack / Backend Engineers</strong> (connectors, evidence store, policy worker, API, UI) · <strong>1 Applied AI / ML Engineer</strong> (extraction, evaluation harness, regression runs). Shared part-time: security / DevOps, QA / data labelling.</p>
+<table>
+<thead>
+<tr>
+<th>Weeks</th>
+<th>Build</th>
+<th>Gate</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>0</strong></td>
+<td>Design partner and <strong>historical audit</strong>; freeze 5–8 claims; first labelled set</td>
+<td><strong>G0 value:</strong> lost and slipped deals carry more unsupported or contradicted claims than won ones, else <strong>stop</strong></td>
+</tr>
+<tr>
+<td><strong>1–2</strong></td>
+<td>Domain model, CRM connector, email and call ingestion, source viewer, tenant and auth</td>
+<td>Real partner data visible in the source viewer</td>
+</tr>
+<tr>
+<td><strong>3–4</strong></td>
+<td>Extraction pipeline, speaker and claim mapping, evaluation harness</td>
+<td><strong>G1 (interim):</strong> dev-set precision at an agreed bar [proposed ≈ 85 %] or narrow claims</td>
+</tr>
+<tr>
+<td><strong>5–6</strong></td>
+<td>Policy engine, queue, deal ledger, rep dispute, decision log</td>
+<td>End-to-end on partner data</td>
+</tr>
+<tr>
+<td><strong>7</strong></td>
+<td>RevOps policy settings, security hardening, audit logs, performance</td>
+<td>Pen-test findings addressed</td>
+</tr>
+<tr>
+<td><strong>8</strong></td>
+<td>Historical backtest and accuracy evaluation</td>
+<td><strong>G2 accuracy:</strong> <strong>≥ 90 %</strong> citations correct and relevant, else narrow and tune</td>
+</tr>
+<tr>
+<td><strong>9–10</strong></td>
+<td>Design-partner live pilot, rep-first</td>
+<td><strong>G3 adoption:</strong> <strong>&gt; 50 %</strong> flags worth raising, disputes low, recording not falling</td>
+</tr>
+</tbody></table>
+<p><strong>The historical audit:</strong> <em>This tests whether evidence quality separates outcomes enough to justify a live pilot. It does not establish causality.</em> <strong>Do not start write-back until</strong> citation quality has cleared the threshold <strong>and</strong> an adoption signal exists.</p>
+<h3 id="top-product-technical-risks">TOP PRODUCT/TECHNICAL RISKS</h3>
+<table>
+<thead>
+<tr>
+<th>Risk</th>
+<th>Mitigation</th>
+<th>What we measure</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>1. Authority / role identification</strong></td>
+<td>Start with claims where authority is relatively explicit, expose the inferred role, allow one-step correction, measure role accuracy separately, and narrow the claim set if reliability is inadequate.</td>
+<td>Role accuracy; disputes citing speaker or role</td>
+</tr>
+<tr>
+<td><strong>2. Missing communication channels</strong></td>
+<td>Say &quot;in connected sources&quot;; list channels per deal; rep can add seller-supplied context</td>
+<td>Disputes citing an unseen channel</td>
+</tr>
+<tr>
+<td><strong>3. False extraction / interpretation</strong></td>
+<td>Exact quote with context and link; precision-first tuning; regression set on every change</td>
+<td>Citation precision, incl. hedged and conditional cases</td>
+</tr>
+<tr>
+<td><strong>4. Rep surveillance / adoption</strong></td>
+<td>Rep sees flags first; managers see deal evidence, not activity counts; audit reported by pattern, not by rep</td>
+<td>Disputes; <strong>recording rate</strong> (is it falling?)</td>
+</tr>
+<tr>
+<td><strong>5. Platform / API dependency</strong></td>
+<td>One CRM and one recorder; adapters; contract tests; &quot;sync degraded&quot; status</td>
+<td>Sync lag; breaking changes per quarter</td>
+</tr>
+<tr>
+<td><strong>6. Evidence quality may not separate deal outcomes</strong></td>
+<td>This is the <strong>first test</strong>, before any live build, judged point-in-time; if it does not separate outcomes, we stop</td>
+<td>Unsupported/contradicted rate on won vs lost vs slipped deals</td>
+</tr>
+</tbody></table>
+<p>Not every risk is solved; the plan is built so the cheapest tests come first.</p>
+
+  </main>
+  <footer>Castellan Freight, every account, person and quote is illustrative. Thresholds and policy values are proposals to agree with engineering and a design partner, not industry benchmarks. Generated from docs/ENGINEERING_APPROACH_CONCISE.md.</footer>
+</div>
+</body>
+</html>

@@ -296,7 +296,7 @@ export class LocalEvidenceRepository implements EvidenceRepository {
       id: sourceId,
       dealId: input.dealId,
       type: "SELLER_ATTACHMENT",
-      title: `Evidence attached by ${user.name}`,
+      title: `Context added by ${user.name}`,
       occurredAt: at,
       participants: [{ name: user.name, role: "SELLER_REP" }],
       text: input.note.trim(),

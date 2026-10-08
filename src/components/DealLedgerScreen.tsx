@@ -63,7 +63,17 @@ export function DealLedgerScreen({ dealId, role }: { dealId: string; role: Exclu
               />
               <Fact label="Close" value={<span className="text-lg font-bold text-ink">{formatDate(deal.closeDate)}</span>} />
               <Fact label="Rep" value={<span className="text-sm font-semibold text-slate">{ledger.owner.name}</span>} />
-              <Fact label="Review priority" value={<PriorityChip priority={ledger.priority} />} />
+              <Fact
+                label="Evidence review priority"
+                value={
+                  <span className="inline-flex flex-col items-start gap-1">
+                    <PriorityChip priority={ledger.priority} />
+                    <span className="max-w-[210px] text-[11px] leading-tight text-muted" data-testid="priority-note">
+                      Based on evidence status only — not a win probability.
+                    </span>
+                  </span>
+                }
+              />
             </dl>
           </div>
           <div className="max-w-sm text-sm">

@@ -3,7 +3,10 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { marked } from "marked";
 
-const md = readFileSync("docs/ENGINEERING_APPROACH.md", "utf8");
+// usage: node scripts/build-engineering-html.mjs [input.md] [output.html] [concise|detailed]
+const [inFile = "docs/ENGINEERING_APPROACH.md", outFile = "engineering-approach.html", mode = "detailed"] = process.argv.slice(2);
+const concise = mode === "concise";
+const md = readFileSync(inFile, "utf8");
 const svg = readFileSync("docs/assets/architecture.svg", "utf8").replace(/width="100%"/, 'width="100%" style="max-width:860px;display:block;margin:0 auto"');
 
 marked.setOptions({ gfm: true });
@@ -32,7 +35,7 @@ const html = `<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Engineering Approach · Deal Evidence Ledger</title>
+<title>Engineering Approach${concise ? "" : " (detailed appendix)"} · Deal Evidence Ledger</title>
 <style>
 :root{--canvas:#f7f8fa;--ink:#14213d;--slate:#334155;--muted:#64748b;--line:#d5dae2;--line-soft:#e6e9ef;--accent:#1d4ed8;--accent-soft:#eef3fd;--sup:#2e7d4f;--uns:#8f5500;--con:#b3261e}
 *{box-sizing:border-box}
@@ -72,19 +75,19 @@ footer{margin-top:60px;font-size:12px;color:var(--muted);border-top:1px solid va
 @media (max-width:640px){.page{padding:20px 14px 60px}.masthead{padding:22px 18px}.masthead h1{font-size:26px}table{display:block;overflow-x:auto}}
 @media print{
   @page{size:A4;margin:14mm}
-  body{background:#fff;font-size:10.5px;line-height:1.5}
+  body{background:#fff;font-size:${concise ? "10px" : "10.5px"};line-height:1.45}
   .page{max-width:none;padding:0}
   .masthead{border:0;padding:0;margin-bottom:10px}
   nav.toc{display:none}
   main h2{margin:22px 0 8px;font-size:19px;break-after:avoid}
   main h3{break-after:avoid;margin:16px 0 6px;font-size:14px}
-  main h2#system-architecture,main h2#team{break-before:page;margin-top:0}
+  ${concise ? "main h2{break-before:page;margin-top:0}main h2:first-of-type{break-before:auto;margin-top:14px}main hr{display:none}" : "main h2#system-architecture,main h2#team{break-before:page;margin-top:0}"}
   tr,pre,figure,blockquote{break-inside:avoid}
   table{font-size:9.5px;margin:8px 0 12px}
   th,td{padding:4px 7px}
-  pre{font-size:9px;padding:8px 10px}
+  pre{font-size:8.5px;padding:6px 9px;margin:6px 0;white-space:pre-wrap;overflow:visible;word-break:break-word}
   figure.diagram{padding:6px}
-  figure.diagram svg{max-height:225mm;width:auto!important}
+  figure.diagram svg{max-height:${concise ? "205mm" : "225mm"};width:auto!important}
   a{color:inherit;text-decoration:none}
 }
 </style>
@@ -92,7 +95,7 @@ footer{margin-top:60px;font-size:12px;color:var(--muted);border-top:1px solid va
 <body>
 <div class="page">
   <header class="masthead">
-    <p class="eyebrow">Reimagine CRM for the future of sales · deliverable 3 of 3</p>
+    <p class="eyebrow">Reimagine CRM for the future of sales · deliverable 3 of 3${concise ? " · evaluator edition (6 pages)" : " · detailed appendix"}</p>
     <h1>${h1}</h1>
     <p class="sub">Evidence-native CRM · first product · MVP architecture, team and implementation plan</p>
     <p class="sub">Abhishek Nahire · Product Manager, AI Solutions · written for engineering leadership</p>
@@ -102,9 +105,9 @@ footer{margin-top:60px;font-size:12px;color:var(--muted);border-top:1px solid va
   <main>
 ${body}
   </main>
-  <footer>Castellan Freight, every account, person and quote is illustrative. Thresholds and policy values are proposals to agree with engineering and a design partner, not industry benchmarks. Generated from docs/ENGINEERING_APPROACH.md.</footer>
+  <footer>Castellan Freight, every account, person and quote is illustrative. Thresholds and policy values are proposals to agree with engineering and a design partner, not industry benchmarks. Generated from ${inFile}.</footer>
 </div>
 </body>
 </html>`;
-writeFileSync("engineering-approach.html", html);
-console.log("wrote engineering-approach.html", (html.length / 1024).toFixed(0) + " KB");
+writeFileSync(outFile, html);
+console.log("wrote " + outFile, (html.length / 1024).toFixed(0) + " KB");

@@ -55,6 +55,13 @@ describe("Castellan Freight canonical values", async () => {
     expect(claim("CLOSE_DATE").claim.explanation.reason).toMatch(/no admissible customer evidence exists in connected sources/);
   });
 
+  it("one-line headlines are produced by policy", () => {
+    expect(claim("BUDGET_CONFIRMED").claim.explanation.headline).toBe("Supported by CFO evidence from 17 Sep.");
+    expect(claim("SECURITY_COMPLETE").claim.explanation.headline).toBe("Only seller-supplied context. No customer evidence in connected sources.");
+    expect(claim("PROCUREMENT_DURATION").claim.explanation.headline).toBe("Later, more authoritative procurement evidence disagrees.");
+    expect(claim("CLOSE_DATE").claim.explanation.headline).toBe("No customer evidence in connected sources.");
+  });
+
   it("the four claims do NOT downgrade the deal: forecast stays Commit", () => {
     expect(ledger.deal.forecastCategory).toBe("COMMIT");
     expect(ledger.counts).toMatchObject({ SUPPORTED: 1, UNSUPPORTED: 2, CONTRADICTED: 1, STALE: 0, UNKNOWN: 0 });
